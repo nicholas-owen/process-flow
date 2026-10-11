@@ -1,0 +1,113 @@
+{
+  "schema_version": "0.1",
+  "pipeline": {
+    "name": "nf-core/fetchngs",
+    "version": "1.13.0",
+    "revision": "955c892d80927cee633765e6e390f9cc6b7235c9",
+    "repository": "https://github.com/nf-core/fetchngs",
+    "nextflow_version": "26.04.6",
+    "prefix": ["NFCORE_FETCHNGS", "FETCHNGS"]
+  },
+  "generated": {
+    "tool": "hand-written excerpt",
+    "date": "2026-10-10",
+    "sources": ["workflows/fetchngs.nf", "working_docs/fetchngs-preview/*.dot"]
+  },
+  "dimensions": [
+    { "id": "download_method", "param": "download_method", "kind": "enum", "values": ["aspera", "fastq-dl", "ftp", "sratools"], "default": "ftp", "source": "nextflow_schema.json" },
+    { "id": "skip_fastq_download", "param": "skip_fastq_download", "kind": "boolean", "default": false, "source": "nextflow_schema.json" }
+  ],
+  "routes": {
+    "dimension": "download_method",
+    "colours": { "aspera": "#7048e8", "fastq-dl": "#f08c00", "ftp": "#1c7ed6", "sratools": "#c2255c" }
+  },
+  "runs": [
+    { "id": "baseline", "status": "ok", "settings": { "download_method": "ftp", "skip_fastq_download": false }, "dag": "working_docs/fetchngs-preview/baseline.dot", "date": "2026-10-10" },
+    { "id": "dl_aspera", "args": "--download_method aspera", "status": "ok", "settings": { "download_method": "aspera", "skip_fastq_download": false }, "dag": "working_docs/fetchngs-preview/dl_aspera.dot", "date": "2026-10-10" },
+    { "id": "skip_download", "args": "--skip_fastq_download", "status": "ok", "settings": { "download_method": "ftp", "skip_fastq_download": true }, "dag": "working_docs/fetchngs-preview/skip_download.dot", "date": "2026-10-10" }
+  ],
+  "nodes": [
+    {
+      "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_RUNINFO_TO_FTP",
+      "kind": "process",
+      "label": "SRA_RUNINFO_TO_FTP",
+      "path": ["NFCORE_FETCHNGS", "FETCHNGS", "SRA_RUNINFO_TO_FTP"],
+      "module": "modules/local/sra_runinfo_to_ftp/main.nf",
+      "when_from": "preview",
+      "observed_in": ["baseline", "dl_aspera", "skip_download"]
+    },
+    {
+      "id": "NFCORE_FETCHNGS:FETCHNGS/op:branch@ch_sra_metadata#0",
+      "kind": "operator",
+      "label": "branch",
+      "path": ["NFCORE_FETCHNGS", "FETCHNGS"],
+      "operator": { "type": "branch", "closure": "aspera / fastqdl / ftp / sratools, chosen per sample from download_method and the sample's links" },
+      "fingerprint": { "type": "branch", "upstream": "ch_sra_metadata", "downstream": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI", "edge_label": "ch_sra_metadata", "ordinal": 0 },
+      "source": "workflows/fetchngs.nf:62-84",
+      "when": { "params": { "skip_fastq_download": false } },
+      "when_from": "preview",
+      "observed_in": ["baseline", "dl_aspera"],
+      "notes": "Every download route is wired in every run. download_method only decides which route each sample takes, so comparing preview DAGs cannot see it."
+    },
+    {
+      "id": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI",
+      "kind": "process",
+      "label": "ASPERA_CLI",
+      "path": ["NFCORE_FETCHNGS", "FETCHNGS", "ASPERA_CLI"],
+      "module": "modules/local/aspera_cli/main.nf",
+      "source": "workflows/fetchngs.nf",
+      "when": { "params": { "skip_fastq_download": false } },
+      "when_from": "preview",
+      "flows_when": {
+        "params": { "download_method": "aspera" },
+        "data": [ { "expr": "meta.fastq_aspera", "text": "the sample has an Aspera link" } ]
+      },
+      "flows_when_from": "evaluated",
+      "observed_in": ["baseline", "dl_aspera"],
+      "category": "aspera"
+    },
+    {
+      "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH",
+      "kind": "process",
+      "label": "SRATOOLS_PREFETCH",
+      "path": ["NFCORE_FETCHNGS", "FETCHNGS", "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS", "SRATOOLS_PREFETCH"],
+      "module": "modules/nf-core/sratools/prefetch/main.nf",
+      "when": { "params": { "skip_fastq_download": false } },
+      "when_from": "preview",
+      "flows_when": {
+        "any": [
+          { "params": { "download_method": "sratools" } },
+          { "data": [ { "expr": "!meta.fastq_aspera && !meta.fastq_1", "text": "the sample has neither an Aspera nor an FTP link (fallback under any method)" } ] }
+        ]
+      },
+      "flows_when_from": "evaluated",
+      "observed_in": ["baseline", "dl_aspera"],
+      "category": "sratools"
+    }
+  ],
+  "edges": [
+    {
+      "id": "branch.aspera->ASPERA_CLI",
+      "from": "NFCORE_FETCHNGS:FETCHNGS/op:branch@ch_sra_metadata#0",
+      "to": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI",
+      "name": "ch_sra_reads.aspera",
+      "operator": "branch: aspera",
+      "contents": {
+        "shape": "[meta, [aspera_link_1, aspera_link_2]]",
+        "meta": { "keys": ["id", "run_accession", "fastq_aspera", "fastq_1", "fastq_2"] },
+        "cardinality": { "kind": "queue", "per": "run accession" },
+        "files": "none yet: Aspera URLs as strings, at most two (take(2))",
+        "from": { "shape": "evaluated", "meta": "unknown", "cardinality": "annotated" }
+      },
+      "when": { "params": { "skip_fastq_download": false } },
+      "when_from": "preview",
+      "flows_when": {
+        "params": { "download_method": "aspera" },
+        "data": [ { "expr": "meta.fastq_aspera", "text": "the sample has an Aspera link" } ]
+      },
+      "flows_when_from": "evaluated",
+      "observed_in": ["baseline", "dl_aspera"],
+      "notes": "Meta keys listed here are illustrative; the real set comes from the runinfo TSV columns and is unconfirmed."
+    }
+  ]
+}

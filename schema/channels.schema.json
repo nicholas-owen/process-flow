@@ -1,0 +1,1018 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://process-flow/schema/channels.schema.json",
+  "title": "process-flow channel model",
+  "description": "A Nextflow pipeline at the level of channels: every process and operator, what each channel carries, and the settings under which each element exists and receives items. Draft 0.1, 2026-10-10. See schema/README.md for the reasoning behind each field.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "pipeline",
+    "dimensions",
+    "nodes",
+    "edges"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "form": {
+      "description": "full: as tools/generate.py writes it, with the per-run evidence (`runs`, `observed_in`). published: the form a pipeline ships for the Explorer (tools/publish.py), with the evidence summarised in `generated.evidence` instead. Absent means full.",
+      "enum": [
+        "full",
+        "published"
+      ]
+    },
+    "pipeline": {
+      "description": "Which pipeline, at which revision. A model is only valid for the revision it was built from.",
+      "type": "object",
+      "required": [
+        "name",
+        "revision"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "examples": [
+            "nf-core/fetchngs",
+            "rnaseq-flow"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "description": "Release tag or manifest version.",
+          "examples": [
+            "1.13.0"
+          ]
+        },
+        "revision": {
+          "type": "string",
+          "description": "Commit hash the model was built from."
+        },
+        "repository": {
+          "type": "string"
+        },
+        "nextflow_version": {
+          "type": "string",
+          "description": "Nextflow that produced the preview DAGs. The DOT format is internal and may change between releases."
+        },
+        "prefix": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Leading path segments shared by every process and hidden in the viewer, e.g. [\"NFCORE_FETCHNGS\", \"FETCHNGS\"]. Empty for a flat pipeline."
+        }
+      }
+    },
+    "generated": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tool": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Files and DAGs the model was built from."
+        },
+        "process_flow_version": {
+          "type": "string",
+          "description": "The process-flow version that wrote the model."
+        },
+        "evidence": {
+          "description": "How a published model was proven, in place of the per-run evidence it leaves out.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "design": {
+              "type": "string"
+            },
+            "runs_ok": {
+              "type": "integer"
+            },
+            "runs_failed": {
+              "type": "integer"
+            },
+            "failed": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "settings": {
+                    "type": "object"
+                  },
+                  "error": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "description": "Each failed run's settings and the error it stopped with."
+            },
+            "fixed_args": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "param",
+                  "value"
+                ],
+                "properties": {
+                  "param": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                }
+              },
+              "description": "Args the same in every run, e.g. to make the test profile previewable. Paths reduced to file names."
+            },
+            "dimensions_dropped": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Dimensions the matrix varied and showed to change nothing."
+            },
+            "dimensions_never_varied_alone": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Dimensions no `when` uses but no pair of runs varied alone: possibly confounded."
+            },
+            "params_not_varied": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Params the code tests that the matrix held fixed. Conditions are exact only with these at the test profile's values."
+            },
+            "unsettled": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Elements whose `when` the matrix did not settle (also marked settled: false)."
+            },
+            "disagreements": {
+              "type": "integer",
+              "description": "Element-run pairs where a `when` and the runs disagree. 0 when every `when` fits every run."
+            }
+          }
+        },
+        "captured": {
+          "description": "A real run laid over the model by tools/harvest.py: which run, its settings, and how it compared with what the model expects. Edges carry its meta keys, cardinality and examples (keyed by `run`), marked harvested.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "run": {
+              "type": "string",
+              "description": "Nextflow's run name; the key of this run's examples."
+            },
+            "revision": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "release": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "repository": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "started": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "settings": {
+              "type": "object",
+              "description": "Every dimension's value in this run, read from its params."
+            },
+            "tasks": {
+              "type": "integer"
+            },
+            "processes": {
+              "type": "integer"
+            },
+            "check": {
+              "type": "object",
+              "description": "Processes expected under the run's settings against those wired and run; with the preview DAGs, every node and edge of the run's DAG against the model's elements. Differences mean the model is stale or wrong for this run. held_args_changed: args every preview held that this run sets differently; explained: differing elements, grouped into connected pieces, put down to the changed arg a piece names; unexplained: the rest."
+            },
+            "tasks_per_process": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "description": "Process id -> tasks it ran in this run."
+            },
+            "starved": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Processes wired in the run's DAG that ran no task: they received nothing."
+            }
+          }
+        }
+      }
+    },
+    "dimensions": {
+      "description": "The settings that branch the graph. Predicates refer to these by id and to nothing else.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dimension"
+      }
+    },
+    "routes": {
+      "description": "The dimension whose values are drawn as metro lines, and their colours. Optional: without it the viewer colours by category only.",
+      "type": "object",
+      "required": [
+        "dimension",
+        "colours"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "dimension": {
+          "type": "string",
+          "description": "A dimension id."
+        },
+        "colours": {
+          "$ref": "#/$defs/colourMap",
+          "description": "Dimension value to colour."
+        }
+      }
+    },
+    "palette": {
+      "description": "Category to colour, for branches that keep their own colour whatever route is selected (QC, reporting, inputs).",
+      "$ref": "#/$defs/colourMap"
+    },
+    "lanes": {
+      "description": "Plumbing that is folded to one edge per process by default, such as versions collection.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "\"main\" is reserved for ordinary data flow and is never folded."
+          },
+          "label": {
+            "type": "string"
+          },
+          "hub": {
+            "type": "string",
+            "description": "Node id the lane converges on. Kept when the lane is folded."
+          },
+          "target": {
+            "type": "string",
+            "description": "Node id the hub feeds, e.g. the MultiQC process."
+          },
+          "mode": {
+            "enum": [
+              "folded",
+              "expanded",
+              "hidden"
+            ],
+            "default": "folded",
+            "description": "How the viewer shows the lane on first load."
+          },
+          "detected": {
+            "type": "boolean",
+            "description": "True when found by fan-in heuristics rather than declared."
+          }
+        }
+      }
+    },
+    "groups": {
+      "description": "Optional labels and notes for workflows and subworkflows. Membership comes from each node's path; this only decorates it.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "$ref": "#/$defs/path"
+          },
+          "label": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/$defs/source"
+          },
+          "collapsed": {
+            "type": "boolean",
+            "default": false
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "runs": {
+      "description": "The preview matrix: one entry per -preview run. This is the evidence behind every derived `when`.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/run"
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    }
+  },
+  "$defs": {
+    "colourMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^#[0-9a-fA-F]{6}$"
+      }
+    },
+    "path": {
+      "description": "Workflow nesting, outermost first, as Nextflow prints it split on ':'. For a process the last segment is the process name.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "examples": [
+        [
+          "NFCORE_FETCHNGS",
+          "FETCHNGS",
+          "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS",
+          "SRATOOLS_PREFETCH"
+        ]
+      ]
+    },
+    "source": {
+      "description": "Where in the pipeline source this element is written, as file:line or file:line-line, relative to the repo root.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "examples": [
+        "workflows/fetchngs.nf:62-84"
+      ]
+    },
+    "dimension": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Usually the param name without '--'."
+        },
+        "label": {
+          "type": "string"
+        },
+        "param": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The param this reads. Null for a derived dimension."
+        },
+        "derived_from": {
+          "type": "string",
+          "description": "For a derived dimension, how it follows from params, in words or as the source expression."
+        },
+        "kind": {
+          "enum": [
+            "enum",
+            "ordinal",
+            "boolean",
+            "presence"
+          ],
+          "description": "enum: one of a set. ordinal: an enum whose values are ordered, so a predicate can say 'at least'. boolean: a flag. presence: a path or string param that is either set or not."
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          },
+          "description": "Required for enum and ordinal, in order for ordinal. Omitted for boolean and presence."
+        },
+        "default": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "implies": {
+          "$ref": "#/$defs/predicate",
+          "description": "What setting this dimension explicitly implies about the others, e.g. choosing an aligner implies the reads entry. Evaluation only considers combinations of the unset dimensions consistent with it. Not chained: a dimension implied this way does not bring in its own `implies`."
+        },
+        "source": {
+          "$ref": "#/$defs/source",
+          "description": "Where the dimension's value is read, e.g. nextflow_schema.json or a dispatch in main.nf."
+        },
+        "list_value": {
+          "type": "string",
+          "description": "For one value of a comma-separated list param (nf-core's --tools a,b): this boolean dimension is whether the list includes it. Its param is the list."
+        },
+        "group": {
+          "type": "string",
+          "description": "The section of the pipeline's schema the param belongs to (e.g. 'Read trimming options'); the viewer groups its filters by it."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "enum",
+                  "ordinal"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "values"
+            ]
+          }
+        }
+      ]
+    },
+    "condition": {
+      "description": "A constraint on one dimension. A list means 'one of'. A scalar means 'equals'. {min}/{max} apply to ordinal dimensions. {present} applies to presence dimensions.",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          },
+          "minItems": 1
+        },
+        {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "min": {
+              "type": [
+                "string",
+                "number"
+              ]
+            },
+            "max": {
+              "type": [
+                "string",
+                "number"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "present"
+          ],
+          "properties": {
+            "present": {
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "dataClause": {
+      "description": "A condition on the items themselves, not on settings, e.g. 'the sample has an Aspera link'. The viewer cannot filter on it; it marks the element as 'may receive items'.",
+      "type": "object",
+      "required": [
+        "expr"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "expr": {
+          "type": "string",
+          "description": "As written in the closure, e.g. meta.fastq_aspera."
+        },
+        "text": {
+          "type": "string",
+          "description": "In words, for the detail panel."
+        }
+      }
+    },
+    "predicate": {
+      "description": "All parts are ANDed. An empty or absent predicate always holds. `params` constrains dimensions; `any` is an OR of alternatives; `not` negates; `data` adds conditions on the items (only meaningful in flows_when).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "params": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "any": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/predicate"
+          },
+          "minItems": 1
+        },
+        "not": {
+          "$ref": "#/$defs/predicate"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dataClause"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "provenance": {
+      "description": "Where a value came from. The viewer shows it; the coverage report counts it.",
+      "enum": [
+        "preview",
+        "source",
+        "inferred",
+        "declared",
+        "evaluated",
+        "harvested",
+        "annotated",
+        "unknown"
+      ],
+      "$comment": "preview: from comparing preview DAGs. source: read from the code (its if blocks, evaluated for each setting; tools/graph_conditions.py), less sure than preview. inferred: from neighbouring shapes through a shape-preserving operator. declared: from a module's input/output declarations. evaluated: from running a branch/filter closure against stand-in values. harvested: from a completed run. annotated: written by hand. unknown: nobody knows yet, which is a finding."
+    },
+    "run": {
+      "type": "object",
+      "required": [
+        "id",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "examples": [
+            "baseline",
+            "dl_aspera",
+            "skip_download"
+          ]
+        },
+        "args": {
+          "type": "string",
+          "description": "Command-line args beyond the common ones."
+        },
+        "settings": {
+          "type": "object",
+          "description": "Every dimension's value in this run, defaults included, so a run can be tested against a predicate.",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "failed"
+          ]
+        },
+        "error": {
+          "type": "string"
+        },
+        "dag": {
+          "type": "string",
+          "description": "Path to the DOT file."
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "fingerprint": {
+      "description": "Identity that survives renumbering between runs and small edits to the pipeline. DOT ids (v0, v1, ...) are positional and are never used as ids. Draft: the matching algorithm is the open problem at the start of Phase 2, and this object will change with it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Operator type, e.g. map, mix, branch."
+        },
+        "upstream": {
+          "type": "string",
+          "description": "Nearest named anchor upstream: a process path or channel name."
+        },
+        "downstream": {
+          "type": "string",
+          "description": "Nearest named anchor downstream."
+        },
+        "edge_label": {
+          "type": "string",
+          "description": "Channel name on the inbound edge, where DOT gives one."
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Position in the operator chain between the two anchors."
+        }
+      }
+    },
+    "example": {
+      "description": "What this channel held on a real run, for illustration.",
+      "type": "object",
+      "required": [
+        "kind",
+        "items"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "single",
+            "per_item",
+            "collected"
+          ]
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total items; items may hold fewer."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "group": {
+          "type": "object",
+          "required": [
+            "key",
+            "values"
+          ],
+          "additionalProperties": false,
+          "description": "A meta key and its value for each item, so the viewer can show one item per group. Needed where items carry no meta map of their own.",
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "run": {
+          "type": "string",
+          "description": "Which real run these came from."
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "label"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable id. For processes the ':'-joined path; for operators derived from the fingerprint."
+        },
+        "kind": {
+          "enum": [
+            "process",
+            "operator",
+            "channel",
+            "source",
+            "input",
+            "param",
+            "output"
+          ],
+          "description": "channel: a named channel variable drawn as its own node where several things read it. source: a channel factory (channel.fromList, channel.empty). input/param: a pipeline param feeding the graph. output: a published result."
+        },
+        "label": {
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/path",
+          "description": "For processes: the full path. For other nodes: the enclosing workflow's path."
+        },
+        "module": {
+          "type": "string",
+          "description": "Processes only: the module file, e.g. modules/nf-core/sratools/prefetch/main.nf."
+        },
+        "alias_of": {
+          "type": "string",
+          "description": "Processes only: the process name in the module when it is included under an alias."
+        },
+        "operator": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Operators only.",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "closure": {
+              "type": "string",
+              "description": "The closure or argument as written, where it matters."
+            }
+          }
+        },
+        "fingerprint": {
+          "$ref": "#/$defs/fingerprint"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "when": {
+          "$ref": "#/$defs/predicate",
+          "description": "Settings under which the element exists in the graph."
+        },
+        "when_from": {
+          "$ref": "#/$defs/provenance"
+        },
+        "flows_when": {
+          "$ref": "#/$defs/predicate",
+          "description": "Settings (and data) under which the element receives items. Absent means: whenever it exists. Replaces the prototype's starved_when."
+        },
+        "flows_when_from": {
+          "$ref": "#/$defs/provenance"
+        },
+        "observed_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Run ids whose DAG contains this element. Empty for elements transcribed from code alone."
+        },
+        "lane": {
+          "type": "string",
+          "default": "main"
+        },
+        "category": {
+          "type": "string",
+          "description": "Palette key."
+        },
+        "notes": {
+          "type": "string"
+        },
+        "settled": {
+          "type": "boolean",
+          "description": "false when the matrix did not settle this element's `when`: it fits every run, but no fully probed seed explains every run it appears in. Absent means settled (or not judged)."
+        }
+      }
+    },
+    "cardinality": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "queue",
+            "single",
+            "collected",
+            "value",
+            "mixed",
+            "unknown"
+          ],
+          "description": "queue: one item per unit. single: a queue of exactly one item. collected: one item holding every unit. value: a value channel, repeated for every consumer. mixed: value and queue items mixed into one queue."
+        },
+        "per": {
+          "type": "string",
+          "description": "For queue: the unit, e.g. sample, contrast, run accession."
+        },
+        "text": {
+          "type": "string",
+          "description": "Anything the kind does not say."
+        }
+      }
+    },
+    "contents": {
+      "description": "What the channel carries. Every field optional: a model with no contents is still a valid filterable DAG.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shape": {
+          "type": "string",
+          "description": "Tuple structure as it would appear in a map closure.",
+          "examples": [
+            "[meta, [fastq_1, fastq_2]]",
+            "path"
+          ]
+        },
+        "meta": {
+          "oneOf": [
+            {
+              "type": "null",
+              "description": "Items carry no meta map."
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "keys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "added": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "New since the previous edge."
+                },
+                "dropped": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "text": {
+                  "type": "string",
+                  "description": "What the key lists cannot say, e.g. 'dropped', or keys that differ by route."
+                }
+              }
+            }
+          ]
+        },
+        "cardinality": {
+          "$ref": "#/$defs/cardinality"
+        },
+        "files": {
+          "type": "string"
+        },
+        "from": {
+          "type": "object",
+          "description": "Provenance per contents field, e.g. {\"shape\": \"declared\", \"meta\": \"harvested\"}.",
+          "propertyNames": {
+            "enum": [
+              "shape",
+              "meta",
+              "cardinality",
+              "files"
+            ]
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/provenance"
+          }
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": [
+        "id",
+        "from",
+        "to"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "description": "Channel name in the code, or the emit/input name at a process."
+        },
+        "port": {
+          "type": "string",
+          "description": "At a process boundary: the emit name or input position."
+        },
+        "operator": {
+          "type": "string",
+          "description": "How this edge was derived from its predecessor, as written, if by an operator."
+        },
+        "contents": {
+          "$ref": "#/$defs/contents"
+        },
+        "when": {
+          "$ref": "#/$defs/predicate"
+        },
+        "when_from": {
+          "$ref": "#/$defs/provenance"
+        },
+        "flows_when": {
+          "$ref": "#/$defs/predicate"
+        },
+        "flows_when_from": {
+          "$ref": "#/$defs/provenance"
+        },
+        "observed_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lane": {
+          "type": "string",
+          "default": "main"
+        },
+        "examples": {
+          "type": "object",
+          "description": "Keyed by example set: a route value or a run id.",
+          "additionalProperties": {
+            "$ref": "#/$defs/example"
+          }
+        },
+        "notes": {
+          "type": "string"
+        },
+        "settled": {
+          "type": "boolean",
+          "description": "false when the matrix did not settle this element's `when`: it fits every run, but no fully probed seed explains every run it appears in. Absent means settled (or not judged)."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# process-flow: run a Nextflow pipeline and see what its channels carried.
+#   process-flow run nf-core/rnaseq -r 3.27.0 -profile test,docker --outdir results
+#   process-flow explore [--run-dir DIR] [--outdir results]
+exec python3 "$(dirname "$(readlink -f "$0")")/../tools/pf.py" "$@"

@@ -1,0 +1,4498 @@
+{
+ "schema_version": "0.1",
+ "pipeline": {
+  "name": "nf-core/fetchngs",
+  "version": "1.13.0",
+  "revision": "955c892d80927cee633765e6e390f9cc6b7235c9",
+  "repository": "https://github.com/nf-core/fetchngs",
+  "nextflow_version": "26.04.6",
+  "prefix": [
+   "NFCORE_FETCHNGS",
+   "FETCHNGS"
+  ]
+ },
+ "generated": {
+  "tool": "process-flow fixtures/fetchngs_spec.py (hand-modelled)",
+  "date": "2026-10-10",
+  "sources": [
+   "main.nf",
+   "workflows/fetchngs.nf",
+   "subworkflows/local/channel_sra_create_csv/main.nf",
+   "subworkflows/nf-core/fastq_download_prefetch_fasterqdump_sratools/main.nf",
+   "subworkflows/local/utils_nfcore_fetchngs_pipeline/main.nf",
+   "modules/*/main.nf",
+   "working_docs/fetchngs-preview/*.dot"
+  ]
+ },
+ "dimensions": [
+  {
+   "id": "download_method",
+   "param": "download_method",
+   "kind": "enum",
+   "values": [
+    "aspera",
+    "fastq-dl",
+    "ftp",
+    "sratools"
+   ],
+   "default": "ftp",
+   "source": "nextflow_schema.json",
+   "implies": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "description": "Chosen per run inside a branch closure, so it changes what flows, never the graph."
+  },
+  {
+   "id": "skip_fastq_download",
+   "param": "skip_fastq_download",
+   "kind": "boolean",
+   "default": false,
+   "source": "nextflow_schema.json",
+   "description": "An if around every download route (workflows/fetchngs.nf:60)."
+  },
+  {
+   "id": "sample_mapping_fields",
+   "param": "sample_mapping_fields",
+   "kind": "presence",
+   "default": "present",
+   "source": "nextflow_schema.json",
+   "description": "Has a default; unsetting it starves MULTIQC_MAPPINGS_CONFIG through a filter on the value."
+  }
+ ],
+ "routes": {
+  "dimension": "download_method",
+  "colours": {
+   "aspera": "#7048e8",
+   "fastq-dl": "#f08c00",
+   "ftp": "#1c7ed6",
+   "sratools": "#c2255c"
+  }
+ },
+ "palette": {
+  "shared": "#495057",
+  "samplesheet": "#0ca678",
+  "reporting": "#868e96",
+  "versions": "#adb5bd",
+  "input": "#9aa3ad"
+ },
+ "lanes": [
+  {
+   "id": "main",
+   "label": "data flow",
+   "mode": "expanded"
+  },
+  {
+   "id": "versions",
+   "label": "versions via channel.topic('versions')",
+   "hub": "topic.versions",
+   "mode": "hidden"
+  }
+ ],
+ "groups": [
+  {
+   "path": [
+    "PIPELINE_INITIALISATION"
+   ],
+   "label": "PIPELINE_INITIALISATION",
+   "source": "subworkflows/local/utils_nfcore_fetchngs_pipeline/main.nf"
+  },
+  {
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS"
+   ],
+   "label": "sra-tools download",
+   "source": "subworkflows/nf-core/fastq_download_prefetch_fasterqdump_sratools/main.nf"
+  },
+  {
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "CHANNEL_SRA_CREATE_CSV"
+   ],
+   "label": "samplesheet",
+   "source": "subworkflows/local/channel_sra_create_csv/main.nf",
+   "notes": "A subworkflow with no processes: the preview DAG gives no sign it exists."
+  }
+ ],
+ "runs": [
+  {
+   "id": "baseline",
+   "args": "",
+   "status": "ok",
+   "settings": {
+    "download_method": "ftp",
+    "skip_fastq_download": false,
+    "sample_mapping_fields": "present"
+   },
+   "dag": "working_docs/fetchngs-preview/baseline.dot",
+   "date": "2026-10-10"
+  },
+  {
+   "id": "dl_aspera",
+   "args": "--download_method aspera",
+   "status": "ok",
+   "settings": {
+    "download_method": "aspera",
+    "skip_fastq_download": false,
+    "sample_mapping_fields": "present"
+   },
+   "dag": "working_docs/fetchngs-preview/dl_aspera.dot",
+   "date": "2026-10-10"
+  },
+  {
+   "id": "dl_fastqdl",
+   "args": "--download_method fastq-dl",
+   "status": "ok",
+   "settings": {
+    "download_method": "fastq-dl",
+    "skip_fastq_download": false,
+    "sample_mapping_fields": "present"
+   },
+   "dag": "working_docs/fetchngs-preview/dl_fastqdl.dot",
+   "date": "2026-10-10"
+  },
+  {
+   "id": "dl_sratools",
+   "args": "--download_method sratools",
+   "status": "ok",
+   "settings": {
+    "download_method": "sratools",
+    "skip_fastq_download": false,
+    "sample_mapping_fields": "present"
+   },
+   "dag": "working_docs/fetchngs-preview/dl_sratools.dot",
+   "date": "2026-10-10"
+  },
+  {
+   "id": "dl_sratools_dbgap",
+   "args": "--download_method sratools --dbgap_key dummy.ngc",
+   "status": "ok",
+   "settings": {
+    "download_method": "sratools",
+    "skip_fastq_download": false,
+    "sample_mapping_fields": "present"
+   },
+   "dag": "working_docs/fetchngs-preview/dl_sratools_dbgap.dot",
+   "date": "2026-10-10"
+  },
+  {
+   "id": "dl_ftp_dbgap",
+   "args": "--dbgap_key dummy.ngc",
+   "status": "ok",
+   "settings": {
+    "download_method": "ftp",
+    "skip_fastq_download": false,
+    "sample_mapping_fields": "present"
+   },
+   "dag": "working_docs/fetchngs-preview/dl_ftp_dbgap.dot",
+   "date": "2026-10-10"
+  },
+  {
+   "id": "nfcore_rnaseq",
+   "args": "--nf_core_pipeline rnaseq",
+   "status": "ok",
+   "settings": {
+    "download_method": "ftp",
+    "skip_fastq_download": false,
+    "sample_mapping_fields": "present"
+   },
+   "dag": "working_docs/fetchngs-preview/nfcore_rnaseq.dot",
+   "date": "2026-10-10"
+  },
+  {
+   "id": "skip_download",
+   "args": "--skip_fastq_download",
+   "status": "ok",
+   "settings": {
+    "download_method": "ftp",
+    "skip_fastq_download": true,
+    "sample_mapping_fields": "present"
+   },
+   "dag": "working_docs/fetchngs-preview/skip_download.dot",
+   "date": "2026-10-10"
+  }
+ ],
+ "nodes": [
+  {
+   "id": "PIPELINE_INITIALISATION/channel.fromList",
+   "kind": "source",
+   "label": "channel.fromList(samplesheetToList(--input))",
+   "path": [
+    "PIPELINE_INITIALISATION"
+   ],
+   "operator": {
+    "type": "channel.fromList"
+   },
+   "source": "subworkflows/local/utils_nfcore_fetchngs_pipeline/main.nf:129",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "input",
+   "notes": "Reads --input against assets/schema_input.json. --input itself is not drawn: it is read in a closure, not passed as a channel.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "PIPELINE_INITIALISATION/unique@ids",
+   "kind": "operator",
+   "label": "unique",
+   "path": [
+    "PIPELINE_INITIALISATION"
+   ],
+   "operator": {
+    "type": "unique"
+   },
+   "source": "subworkflows/local/utils_nfcore_fetchngs_pipeline/main.nf:130",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "input",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "in.ena_metadata_fields",
+   "kind": "param",
+   "label": "--ena_metadata_fields",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "main.nf:43",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "input",
+   "notes": "'' when unset, which the script reads as its default field list.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_IDS_TO_RUNINFO",
+   "kind": "process",
+   "label": "SRA_IDS_TO_RUNINFO",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "SRA_IDS_TO_RUNINFO"
+   ],
+   "module": "modules/local/sra_ids_to_runinfo/main.nf",
+   "source": "modules/local/sra_ids_to_runinfo/main.nf",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_RUNINFO_TO_FTP",
+   "kind": "process",
+   "label": "SRA_RUNINFO_TO_FTP",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "SRA_RUNINFO_TO_FTP"
+   ],
+   "module": "modules/local/sra_runinfo_to_ftp/main.nf",
+   "source": "modules/local/sra_runinfo_to_ftp/main.nf",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/filter@runinfo",
+   "kind": "operator",
+   "label": "filter { row -> row.size() > 0 }",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "filter"
+   },
+   "source": "workflows/fetchngs.nf:55",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/splitCsv@runinfo",
+   "kind": "operator",
+   "label": "splitCsv(header: true, sep: '\\t')",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "splitCsv"
+   },
+   "source": "workflows/fetchngs.nf:56",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/map@single_end",
+   "kind": "operator",
+   "label": "map { meta -> meta + [single_end: meta.single_end.toBoolean()] }",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "map"
+   },
+   "source": "workflows/fetchngs.nf:57",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/unique@ch_sra_metadata",
+   "kind": "operator",
+   "label": "unique",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "unique"
+   },
+   "source": "workflows/fetchngs.nf:58",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/branch@ch_sra_metadata",
+   "kind": "operator",
+   "label": "branch: aspera / fastqdl / ftp / sratools",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "branch",
+    "closure": "final_download_method from download_method and the run's links; each branch returns its own shape"
+   },
+   "source": "workflows/fetchngs.nf:62-84",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "notes": "Every route is wired in every run. download_method only decides which route each run takes, so comparing preview DAGs cannot see it; the routes' flows_when come from reading this closure.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_FASTQ_FTP",
+   "kind": "process",
+   "label": "SRA_FASTQ_FTP",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "SRA_FASTQ_FTP"
+   ],
+   "module": "modules/local/sra_fastq_ftp/main.nf",
+   "source": "modules/local/sra_fastq_ftp/main.nf",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "ftp"
+      },
+      "data": [
+       {
+        "expr": "meta.fastq_aspera || meta.fastq_1",
+        "text": "the run has an Aspera or an FTP link"
+       }
+      ]
+     },
+     {
+      "params": {
+       "download_method": "aspera"
+      },
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera",
+        "text": "the run has no Aspera link"
+       },
+       {
+        "expr": "meta.fastq_1",
+        "text": "the run has an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "ftp",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "out.ftp_md5",
+   "kind": "output",
+   "label": "*.md5 (FTP)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "modules/local/sra_fastq_ftp/main.nf",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "ftp"
+      },
+      "data": [
+       {
+        "expr": "meta.fastq_aspera || meta.fastq_1",
+        "text": "the run has an Aspera or an FTP link"
+       }
+      ]
+     },
+     {
+      "params": {
+       "download_method": "aspera"
+      },
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera",
+        "text": "the run has no Aspera link"
+       },
+       {
+        "expr": "meta.fastq_1",
+        "text": "the run has an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "ftp",
+   "notes": "Emitted and published, read by nothing downstream.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS/collect@ch_sra_ids",
+   "kind": "operator",
+   "label": "ch_sra_ids.collect()",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS"
+   ],
+   "operator": {
+    "type": "collect"
+   },
+   "source": "subworkflows/nf-core/fastq_download_prefetch_fasterqdump_sratools/main.nf:18",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "sratools",
+   "notes": "Assumed: collect on an empty channel emits nothing, so CUSTOM_SRATOOLSNCBISETTINGS is starved off the sratools route. Not yet confirmed on a run.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:CUSTOM_SRATOOLSNCBISETTINGS",
+   "kind": "process",
+   "label": "CUSTOM_SRATOOLSNCBISETTINGS",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS",
+    "CUSTOM_SRATOOLSNCBISETTINGS"
+   ],
+   "module": "modules/nf-core/custom/sratoolsncbisettings/main.nf",
+   "source": "modules/nf-core/custom/sratoolsncbisettings/main.nf",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "sratools",
+   "notes": "Its only input is a value channel (the collect), so its outputs are value channels too: one settings file paired with every PREFETCH and FASTERQDUMP task.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "in.dbgap_key",
+   "kind": "input",
+   "label": "--dbgap_key",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "main.nf:41",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "input",
+   "notes": "file(params.dbgap_key) when set, [] otherwise. Never changes the graph; not a dimension.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH",
+   "kind": "process",
+   "label": "SRATOOLS_PREFETCH",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS",
+    "SRATOOLS_PREFETCH"
+   ],
+   "module": "modules/nf-core/sratools/prefetch/main.nf",
+   "source": "modules/nf-core/sratools/prefetch/main.nf",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "sratools",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP",
+   "kind": "process",
+   "label": "SRATOOLS_FASTERQDUMP",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS",
+    "SRATOOLS_FASTERQDUMP"
+   ],
+   "module": "modules/nf-core/sratools/fasterqdump/main.nf",
+   "source": "modules/nf-core/sratools/fasterqdump/main.nf",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "sratools",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "param.aspera_user",
+   "kind": "param",
+   "label": "'era-fasp'",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "workflows/fetchngs.nf:99",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "input",
+   "notes": "A literal in the workflow, not a param.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI",
+   "kind": "process",
+   "label": "ASPERA_CLI",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "ASPERA_CLI"
+   ],
+   "module": "modules/local/aspera_cli/main.nf",
+   "source": "modules/local/aspera_cli/main.nf",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "aspera"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera",
+      "text": "the run has an Aspera link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "aspera",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "out.aspera_md5",
+   "kind": "output",
+   "label": "*.md5 (Aspera)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "modules/local/aspera_cli/main.nf",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "aspera"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera",
+      "text": "the run has an Aspera link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "aspera",
+   "notes": "Emitted and published, read by nothing downstream.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQDL",
+   "kind": "process",
+   "label": "FASTQDL",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "FASTQDL"
+   ],
+   "module": "modules/nf-core/fastqdl/main.nf",
+   "source": "modules/nf-core/fastqdl/main.nf",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "fastq-dl"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera || meta.fastq_1",
+      "text": "the run has an Aspera or an FTP link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "fastq-dl",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "out.fastqdl_runinfo",
+   "kind": "output",
+   "label": "*-run-info.tsv",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "modules/nf-core/fastqdl/main.nf",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "fastq-dl"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera || meta.fastq_1",
+      "text": "the run has an Aspera or an FTP link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "fastq-dl",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "out.fastqdl_runmergers",
+   "kind": "output",
+   "label": "*-run-mergers.tsv (optional)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "modules/nf-core/fastqdl/main.nf",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "fastq-dl"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera || meta.fastq_1",
+      "text": "the run has an Aspera or an FTP link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "fastq-dl",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/mix@sratools_reads",
+   "kind": "operator",
+   "label": ".mix(FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS.out.reads)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "mix"
+   },
+   "source": "workflows/fetchngs.nf:105",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/mix@aspera_fastq",
+   "kind": "operator",
+   "label": ".mix(ASPERA_CLI.out.fastq)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "mix"
+   },
+   "source": "workflows/fetchngs.nf:106",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/mix@fastqdl_fastq",
+   "kind": "operator",
+   "label": ".mix(FASTQDL.out.fastq)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "mix"
+   },
+   "source": "workflows/fetchngs.nf:107",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/map@published_paths",
+   "kind": "operator",
+   "label": "map { meta, fastq -> meta + [fastq_1: ..., fastq_2: ...] }",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "map"
+   },
+   "source": "workflows/fetchngs.nf:108-112",
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "shared",
+   "notes": "Drops the files and keeps only the meta, with fastq_1 and fastq_2 rewritten to where the FastQ will be published under --outdir. Reassigns ch_sra_metadata, which is why CHANNEL_SRA_CREATE_CSV has a different upstream when downloads are skipped.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/map@samplesheet_row",
+   "kind": "operator",
+   "label": "map { meta -> header + values }",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "CHANNEL_SRA_CREATE_CSV"
+   ],
+   "operator": {
+    "type": "map"
+   },
+   "source": "subworkflows/local/channel_sra_create_csv/main.nf:12-17",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "samplesheet",
+   "notes": "Columns from buildPipelineMap: sample, fastq_1, fastq_2, any --nf_core_pipeline extras, then the remaining meta. --nf_core_pipeline changes the columns, never the graph.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/collectFile@tmp_samplesheet",
+   "kind": "operator",
+   "label": "collectFile(name: 'tmp_samplesheet.csv', keepHeader: true, sort: true)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "CHANNEL_SRA_CREATE_CSV"
+   ],
+   "operator": {
+    "type": "collectFile"
+   },
+   "source": "subworkflows/local/channel_sra_create_csv/main.nf:18",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "samplesheet",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/map@samplesheet_text",
+   "kind": "operator",
+   "label": "map { file -> file.text.tokenize('\\n').join('\\n') }",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "CHANNEL_SRA_CREATE_CSV"
+   ],
+   "operator": {
+    "type": "map"
+   },
+   "source": "subworkflows/local/channel_sra_create_csv/main.nf:19",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "samplesheet",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/collectFile@samplesheet",
+   "kind": "operator",
+   "label": "collectFile(name: 'samplesheet.csv', storeDir: outdir/samplesheet)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "CHANNEL_SRA_CREATE_CSV"
+   ],
+   "operator": {
+    "type": "collectFile"
+   },
+   "source": "subworkflows/local/channel_sra_create_csv/main.nf:20",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "samplesheet",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "out.samplesheet",
+   "kind": "output",
+   "label": "samplesheet/samplesheet.csv",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "workflows/fetchngs.nf:143",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "samplesheet",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/map@mappings_row",
+   "kind": "operator",
+   "label": "map { meta -> mapping fields header + values }",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "CHANNEL_SRA_CREATE_CSV"
+   ],
+   "operator": {
+    "type": "map"
+   },
+   "source": "subworkflows/local/channel_sra_create_csv/main.nf:24-35",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "samplesheet",
+   "notes": "Errors out if --sample_mapping_fields names a column the samplesheet does not have.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/collectFile@tmp_id_mappings",
+   "kind": "operator",
+   "label": "collectFile(name: 'tmp_id_mappings.csv', keepHeader: true, sort: true)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "CHANNEL_SRA_CREATE_CSV"
+   ],
+   "operator": {
+    "type": "collectFile"
+   },
+   "source": "subworkflows/local/channel_sra_create_csv/main.nf:36",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "samplesheet",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/map@mappings_text",
+   "kind": "operator",
+   "label": "map { file -> file.text.tokenize('\\n').join('\\n') }",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "CHANNEL_SRA_CREATE_CSV"
+   ],
+   "operator": {
+    "type": "map"
+   },
+   "source": "subworkflows/local/channel_sra_create_csv/main.nf:37",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "samplesheet",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/collectFile@id_mappings",
+   "kind": "operator",
+   "label": "collectFile(name: 'id_mappings.csv', storeDir: outdir/samplesheet)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "CHANNEL_SRA_CREATE_CSV"
+   ],
+   "operator": {
+    "type": "collectFile"
+   },
+   "source": "subworkflows/local/channel_sra_create_csv/main.nf:38",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "samplesheet",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/filter@sample_mapping_fields",
+   "kind": "operator",
+   "label": "ch_mappings.filter { sample_mapping_fields }",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "filter"
+   },
+   "source": "workflows/fetchngs.nf:126",
+   "when_from": "annotated",
+   "lane": "main",
+   "category": "reporting",
+   "notes": "Filters on a value, not on the items: passes everything or nothing.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:MULTIQC_MAPPINGS_CONFIG",
+   "kind": "process",
+   "label": "MULTIQC_MAPPINGS_CONFIG",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS",
+    "MULTIQC_MAPPINGS_CONFIG"
+   ],
+   "module": "modules/local/multiqc_mappings_config/main.nf",
+   "source": "modules/local/multiqc_mappings_config/main.nf",
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "sample_mapping_fields": {
+      "present": true
+     }
+    }
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "reporting",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "out.sample_mappings",
+   "kind": "output",
+   "label": "*config.yml",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "workflows/fetchngs.nf:145",
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "sample_mapping_fields": {
+      "present": true
+     }
+    }
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "category": "reporting",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "topic.versions",
+   "kind": "source",
+   "label": "channel.topic('versions')",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "workflows/fetchngs.nf:133",
+   "when_from": "annotated",
+   "lane": "versions",
+   "category": "versions",
+   "notes": "Every process emits its versions to this topic. The preview DAG does not draw that wiring: each emit is a loose point, and the topic is a separate source point.",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/toList@versions",
+   "kind": "operator",
+   "label": "toList (inside softwareVersionsToYAML)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "toList"
+   },
+   "source": "workflows/fetchngs.nf:132-134",
+   "when_from": "annotated",
+   "lane": "versions",
+   "category": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/map@versions_yaml",
+   "kind": "operator",
+   "label": "map (inside softwareVersionsToYAML)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "map"
+   },
+   "source": "workflows/fetchngs.nf:132-134",
+   "when_from": "annotated",
+   "lane": "versions",
+   "category": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/collectFile@versions",
+   "kind": "operator",
+   "label": "collectFile(storeDir: outdir/pipeline_info, name: nf_core_fetchngs_software_versions.yml)",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "operator": {
+    "type": "collectFile"
+   },
+   "source": "workflows/fetchngs.nf:135-140",
+   "when_from": "annotated",
+   "lane": "versions",
+   "category": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "out.versions",
+   "kind": "output",
+   "label": "pipeline_info/nf_core_fetchngs_software_versions.yml",
+   "path": [
+    "NFCORE_FETCHNGS",
+    "FETCHNGS"
+   ],
+   "source": "workflows/fetchngs.nf:147",
+   "when_from": "annotated",
+   "lane": "versions",
+   "category": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  }
+ ],
+ "edges": [
+  {
+   "id": "PIPELINE_INITIALISATION/channel.fromList->PIPELINE_INITIALISATION/unique@ids",
+   "from": "PIPELINE_INITIALISATION/channel.fromList",
+   "to": "PIPELINE_INITIALISATION/unique@ids",
+   "contents": {
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "input id",
+     "text": "one per row of --input"
+    },
+    "from": {
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "shape": "unknown"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "PIPELINE_INITIALISATION/unique@ids->NFCORE_FETCHNGS:FETCHNGS:SRA_IDS_TO_RUNINFO[ids]",
+   "from": "PIPELINE_INITIALISATION/unique@ids",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:SRA_IDS_TO_RUNINFO",
+   "name": "ids",
+   "contents": {
+    "shape": "id",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "input id"
+    },
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "in.ena_metadata_fields->NFCORE_FETCHNGS:FETCHNGS:SRA_IDS_TO_RUNINFO[fields]",
+   "from": "in.ena_metadata_fields",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:SRA_IDS_TO_RUNINFO",
+   "name": "fields",
+   "contents": {
+    "shape": "fields",
+    "meta": null,
+    "cardinality": {
+     "kind": "value"
+    },
+    "files": "none: a comma-separated string",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_IDS_TO_RUNINFO->NFCORE_FETCHNGS:FETCHNGS:SRA_RUNINFO_TO_FTP[tsv]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:SRA_IDS_TO_RUNINFO",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:SRA_RUNINFO_TO_FTP",
+   "name": "tsv",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "input id"
+    },
+    "files": "*.tsv runinfo, one per input id",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_RUNINFO_TO_FTP->FETCHNGS/filter@runinfo[tsv]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:SRA_RUNINFO_TO_FTP",
+   "to": "FETCHNGS/filter@runinfo",
+   "name": "tsv",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "input id"
+    },
+    "files": "*.tsv with FTP and Aspera links, one per input id",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/filter@runinfo->FETCHNGS/splitCsv@runinfo",
+   "from": "FETCHNGS/filter@runinfo",
+   "to": "FETCHNGS/splitCsv@runinfo",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "input id"
+    },
+    "files": "as above, empty files dropped",
+    "from": {
+     "shape": "inferred",
+     "meta": "inferred",
+     "cardinality": "inferred",
+     "files": "inferred"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/splitCsv@runinfo->FETCHNGS/map@single_end",
+   "from": "FETCHNGS/splitCsv@runinfo",
+   "to": "FETCHNGS/map@single_end",
+   "contents": {
+    "shape": "meta",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession",
+     "text": "one item per row: an input id can expand to many runs"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/map@single_end->FETCHNGS/unique@ch_sra_metadata",
+   "from": "FETCHNGS/map@single_end",
+   "to": "FETCHNGS/unique@ch_sra_metadata",
+   "contents": {
+    "shape": "meta",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "single_end converted from string to boolean. Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/unique@ch_sra_metadata->FETCHNGS/branch@ch_sra_metadata[ch_sra_metadata]",
+   "from": "FETCHNGS/unique@ch_sra_metadata",
+   "to": "FETCHNGS/branch@ch_sra_metadata",
+   "name": "ch_sra_metadata",
+   "contents": {
+    "shape": "meta",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "inferred",
+     "meta": "inferred",
+     "cardinality": "inferred"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/branch@ch_sra_metadata->NFCORE_FETCHNGS:FETCHNGS:SRA_FASTQ_FTP[ch_sra_reads.ftp]",
+   "from": "FETCHNGS/branch@ch_sra_metadata",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:SRA_FASTQ_FTP",
+   "name": "ch_sra_reads.ftp",
+   "operator": "branch: ftp",
+   "contents": {
+    "shape": "[meta, [fastq_1, fastq_2]]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "none yet: FTP URLs as strings",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "ftp"
+      },
+      "data": [
+       {
+        "expr": "meta.fastq_aspera || meta.fastq_1",
+        "text": "the run has an Aspera or an FTP link"
+       }
+      ]
+     },
+     {
+      "params": {
+       "download_method": "aspera"
+      },
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera",
+        "text": "the run has no Aspera link"
+       },
+       {
+        "expr": "meta.fastq_1",
+        "text": "the run has an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/branch@ch_sra_metadata->FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS/collect@ch_sra_ids[ch_sra_ids]",
+   "from": "FETCHNGS/branch@ch_sra_metadata",
+   "to": "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS/collect@ch_sra_ids",
+   "name": "ch_sra_ids",
+   "operator": "branch: sratools",
+   "contents": {
+    "shape": "[meta, run_accession]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/branch@ch_sra_metadata->NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH[ch_sra_ids]",
+   "from": "FETCHNGS/branch@ch_sra_metadata",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH",
+   "name": "ch_sra_ids",
+   "operator": "branch: sratools",
+   "contents": {
+    "shape": "[meta, run_accession]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/branch@ch_sra_metadata->NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI[ch_sra_reads.aspera]",
+   "from": "FETCHNGS/branch@ch_sra_metadata",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI",
+   "name": "ch_sra_reads.aspera",
+   "operator": "branch: aspera",
+   "contents": {
+    "shape": "[meta, [aspera_link_1, aspera_link_2]]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "none yet: Aspera URLs as strings, at most two (take(2))",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "aspera"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera",
+      "text": "the run has an Aspera link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/branch@ch_sra_metadata->NFCORE_FETCHNGS:FETCHNGS:FASTQDL[ch_sra_reads.fastqdl]",
+   "from": "FETCHNGS/branch@ch_sra_metadata",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:FASTQDL",
+   "name": "ch_sra_reads.fastqdl",
+   "operator": "branch: fastqdl",
+   "contents": {
+    "shape": "[meta, run_accession]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "fastq-dl"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera || meta.fastq_1",
+      "text": "the run has an Aspera or an FTP link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_FASTQ_FTP->FETCHNGS/mix@sratools_reads[fastq]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:SRA_FASTQ_FTP",
+   "to": "FETCHNGS/mix@sratools_reads",
+   "name": "fastq",
+   "contents": {
+    "shape": "[meta, *fastq.gz]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "FastQ, one or two per run",
+    "from": {
+     "shape": "declared",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "ftp"
+      },
+      "data": [
+       {
+        "expr": "meta.fastq_aspera || meta.fastq_1",
+        "text": "the run has an Aspera or an FTP link"
+       }
+      ]
+     },
+     {
+      "params": {
+       "download_method": "aspera"
+      },
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera",
+        "text": "the run has no Aspera link"
+       },
+       {
+        "expr": "meta.fastq_1",
+        "text": "the run has an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_FASTQ_FTP->out.ftp_md5[md5]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:SRA_FASTQ_FTP",
+   "to": "out.ftp_md5",
+   "name": "md5",
+   "contents": {
+    "shape": "[meta, *md5]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "declared",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "ftp"
+      },
+      "data": [
+       {
+        "expr": "meta.fastq_aspera || meta.fastq_1",
+        "text": "the run has an Aspera or an FTP link"
+       }
+      ]
+     },
+     {
+      "params": {
+       "download_method": "aspera"
+      },
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera",
+        "text": "the run has no Aspera link"
+       },
+       {
+        "expr": "meta.fastq_1",
+        "text": "the run has an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS/collect@ch_sra_ids->NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:CUSTOM_SRATOOLSNCBISETTINGS[ids]",
+   "from": "FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS/collect@ch_sra_ids",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:CUSTOM_SRATOOLSNCBISETTINGS",
+   "name": "ids",
+   "contents": {
+    "shape": "[meta, run_accession, meta, run_accession, ...]",
+    "meta": null,
+    "cardinality": {
+     "kind": "value",
+     "text": "collect flattens the tuples into one list; the module only uses it as a trigger"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:CUSTOM_SRATOOLSNCBISETTINGS->NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH[ch_ncbi_settings]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:CUSTOM_SRATOOLSNCBISETTINGS",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH",
+   "name": "ch_ncbi_settings",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "value"
+    },
+    "files": "*.mkfg NCBI settings",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:CUSTOM_SRATOOLSNCBISETTINGS->NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP[ch_ncbi_settings]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:CUSTOM_SRATOOLSNCBISETTINGS",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP",
+   "name": "ch_ncbi_settings",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "value"
+    },
+    "files": "*.mkfg NCBI settings",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "in.dbgap_key->NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH[certificate]",
+   "from": "in.dbgap_key",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH",
+   "name": "certificate",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "value"
+    },
+    "files": "the dbGaP key file, or [] when --dbgap_key is unset",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "in.dbgap_key->NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP[certificate]",
+   "from": "in.dbgap_key",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP",
+   "name": "certificate",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "value"
+    },
+    "files": "the dbGaP key file, or [] when --dbgap_key is unset",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH->NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP[sra]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP",
+   "name": "sra",
+   "contents": {
+    "shape": "[meta, sra]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "SRA directory named after the accession",
+    "from": {
+     "shape": "declared",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP->FETCHNGS/mix@sratools_reads[reads]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP",
+   "to": "FETCHNGS/mix@sratools_reads",
+   "name": "reads",
+   "contents": {
+    "shape": "[meta, *.fastq.gz]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "FastQ, one or two per run",
+    "from": {
+     "shape": "declared",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "param.aspera_user->NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI[user]",
+   "from": "param.aspera_user",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI",
+   "name": "user",
+   "contents": {
+    "shape": "user",
+    "meta": null,
+    "cardinality": {
+     "kind": "value"
+    },
+    "files": "none: the string 'era-fasp'",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI->FETCHNGS/mix@aspera_fastq[fastq]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI",
+   "to": "FETCHNGS/mix@aspera_fastq",
+   "name": "fastq",
+   "contents": {
+    "shape": "[meta, *fastq.gz]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "FastQ, one or two per run",
+    "from": {
+     "shape": "declared",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "aspera"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera",
+      "text": "the run has an Aspera link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI->out.aspera_md5[md5]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI",
+   "to": "out.aspera_md5",
+   "name": "md5",
+   "contents": {
+    "shape": "[meta, *md5]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "declared",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "aspera"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera",
+      "text": "the run has an Aspera link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQDL->FETCHNGS/mix@fastqdl_fastq[fastq]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQDL",
+   "to": "FETCHNGS/mix@fastqdl_fastq",
+   "name": "fastq",
+   "contents": {
+    "shape": "[meta, *.fastq.gz]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "FastQ, one or two per run",
+    "from": {
+     "shape": "declared",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "fastq-dl"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera || meta.fastq_1",
+      "text": "the run has an Aspera or an FTP link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQDL->out.fastqdl_runinfo[runinfo]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQDL",
+   "to": "out.fastqdl_runinfo",
+   "name": "runinfo",
+   "contents": {
+    "shape": "[meta, *-run-info.tsv]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "declared",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "fastq-dl"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera || meta.fastq_1",
+      "text": "the run has an Aspera or an FTP link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQDL->out.fastqdl_runmergers[runmergers]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQDL",
+   "to": "out.fastqdl_runmergers",
+   "name": "runmergers",
+   "contents": {
+    "shape": "[meta, *-run-mergers.tsv]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession",
+     "text": "optional: absent for most runs"
+    },
+    "from": {
+     "shape": "declared",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "fastq-dl"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera || meta.fastq_1",
+      "text": "the run has an Aspera or an FTP link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/mix@sratools_reads->FETCHNGS/mix@aspera_fastq",
+   "from": "FETCHNGS/mix@sratools_reads",
+   "to": "FETCHNGS/mix@aspera_fastq",
+   "contents": {
+    "shape": "[meta, fastq]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "FastQ from whichever route each run took; a single path or a list",
+    "from": {
+     "shape": "inferred",
+     "meta": "inferred",
+     "cardinality": "inferred",
+     "files": "inferred"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/mix@aspera_fastq->FETCHNGS/mix@fastqdl_fastq",
+   "from": "FETCHNGS/mix@aspera_fastq",
+   "to": "FETCHNGS/mix@fastqdl_fastq",
+   "contents": {
+    "shape": "[meta, fastq]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "FastQ from whichever route each run took; a single path or a list",
+    "from": {
+     "shape": "inferred",
+     "meta": "inferred",
+     "cardinality": "inferred",
+     "files": "inferred"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/mix@fastqdl_fastq->FETCHNGS/map@published_paths",
+   "from": "FETCHNGS/mix@fastqdl_fastq",
+   "to": "FETCHNGS/map@published_paths",
+   "contents": {
+    "shape": "[meta, fastq]",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "FastQ from whichever route each run took; a single path or a list",
+    "from": {
+     "shape": "inferred",
+     "meta": "inferred",
+     "cardinality": "inferred",
+     "files": "inferred"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/map@published_paths->CHANNEL_SRA_CREATE_CSV/map@samplesheet_row[sra_metadata]",
+   "from": "FETCHNGS/map@published_paths",
+   "to": "CHANNEL_SRA_CREATE_CSV/map@samplesheet_row",
+   "name": "sra_metadata",
+   "contents": {
+    "shape": "meta",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "fastq_1 and fastq_2 rewritten to the published paths under --outdir; the files themselves are no longer in the channel. Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/map@published_paths->CHANNEL_SRA_CREATE_CSV/map@mappings_row[sra_metadata]",
+   "from": "FETCHNGS/map@published_paths",
+   "to": "CHANNEL_SRA_CREATE_CSV/map@mappings_row",
+   "name": "sra_metadata",
+   "contents": {
+    "shape": "meta",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "fastq_1 and fastq_2 rewritten to the published paths under --outdir; the files themselves are no longer in the channel. Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "FETCHNGS/unique@ch_sra_metadata->CHANNEL_SRA_CREATE_CSV/map@samplesheet_row[sra_metadata]",
+   "from": "FETCHNGS/unique@ch_sra_metadata",
+   "to": "CHANNEL_SRA_CREATE_CSV/map@samplesheet_row",
+   "name": "sra_metadata",
+   "contents": {
+    "shape": "meta",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "as read from the runinfo: fastq_1 and fastq_2 are FTP URLs, nothing was downloaded. Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": true
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "notes": "Only with --skip_fastq_download: ch_sra_metadata is not reassigned, so the samplesheet is built from the runinfo directly.",
+   "observed_in": [
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/unique@ch_sra_metadata->CHANNEL_SRA_CREATE_CSV/map@mappings_row[sra_metadata]",
+   "from": "FETCHNGS/unique@ch_sra_metadata",
+   "to": "CHANNEL_SRA_CREATE_CSV/map@mappings_row",
+   "name": "sra_metadata",
+   "contents": {
+    "shape": "meta",
+    "meta": {
+     "keys": [
+      "id",
+      "run_accession",
+      "sample_accession",
+      "single_end",
+      "fastq_1",
+      "fastq_2",
+      "md5_1",
+      "md5_2",
+      "fastq_aspera"
+     ],
+     "text": "as read from the runinfo: fastq_1 and fastq_2 are FTP URLs, nothing was downloaded. Keys the code reads; the full set is every column sra_runinfo_to_ftp.py writes, which includes the --ena_metadata_fields."
+    },
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": true
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/map@samplesheet_row->CHANNEL_SRA_CREATE_CSV/collectFile@tmp_samplesheet",
+   "from": "CHANNEL_SRA_CREATE_CSV/map@samplesheet_row",
+   "to": "CHANNEL_SRA_CREATE_CSV/collectFile@tmp_samplesheet",
+   "contents": {
+    "shape": "string",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "none: one CSV header line and one value line",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/collectFile@tmp_samplesheet->CHANNEL_SRA_CREATE_CSV/map@samplesheet_text",
+   "from": "CHANNEL_SRA_CREATE_CSV/collectFile@tmp_samplesheet",
+   "to": "CHANNEL_SRA_CREATE_CSV/map@samplesheet_text",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "files": "tmp_samplesheet.csv",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/map@samplesheet_text->CHANNEL_SRA_CREATE_CSV/collectFile@samplesheet",
+   "from": "CHANNEL_SRA_CREATE_CSV/map@samplesheet_text",
+   "to": "CHANNEL_SRA_CREATE_CSV/collectFile@samplesheet",
+   "contents": {
+    "shape": "string",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "files": "none: the CSV text",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/collectFile@samplesheet->out.samplesheet[samplesheet]",
+   "from": "CHANNEL_SRA_CREATE_CSV/collectFile@samplesheet",
+   "to": "out.samplesheet",
+   "name": "samplesheet",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "files": "samplesheet.csv, published",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/map@mappings_row->CHANNEL_SRA_CREATE_CSV/collectFile@tmp_id_mappings",
+   "from": "CHANNEL_SRA_CREATE_CSV/map@mappings_row",
+   "to": "CHANNEL_SRA_CREATE_CSV/collectFile@tmp_id_mappings",
+   "contents": {
+    "shape": "string",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "run accession"
+    },
+    "files": "none: one CSV header line and one value line",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/collectFile@tmp_id_mappings->CHANNEL_SRA_CREATE_CSV/map@mappings_text",
+   "from": "CHANNEL_SRA_CREATE_CSV/collectFile@tmp_id_mappings",
+   "to": "CHANNEL_SRA_CREATE_CSV/map@mappings_text",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "files": "tmp_id_mappings.csv",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/map@mappings_text->CHANNEL_SRA_CREATE_CSV/collectFile@id_mappings",
+   "from": "CHANNEL_SRA_CREATE_CSV/map@mappings_text",
+   "to": "CHANNEL_SRA_CREATE_CSV/collectFile@id_mappings",
+   "contents": {
+    "shape": "string",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "files": "none: the CSV text",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "CHANNEL_SRA_CREATE_CSV/collectFile@id_mappings->FETCHNGS/filter@sample_mapping_fields[mappings]",
+   "from": "CHANNEL_SRA_CREATE_CSV/collectFile@id_mappings",
+   "to": "FETCHNGS/filter@sample_mapping_fields",
+   "name": "mappings",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "files": "id_mappings.csv, published",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/filter@sample_mapping_fields->NFCORE_FETCHNGS:FETCHNGS:MULTIQC_MAPPINGS_CONFIG[csv]",
+   "from": "FETCHNGS/filter@sample_mapping_fields",
+   "to": "NFCORE_FETCHNGS:FETCHNGS:MULTIQC_MAPPINGS_CONFIG",
+   "name": "csv",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "files": "id_mappings.csv",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "sample_mapping_fields": {
+      "present": true
+     }
+    }
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:MULTIQC_MAPPINGS_CONFIG->out.sample_mappings[sample_mappings]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:MULTIQC_MAPPINGS_CONFIG",
+   "to": "out.sample_mappings",
+   "name": "sample_mappings",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "files": "*config.yml MultiQC sample-name mappings",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "sample_mapping_fields": {
+      "present": true
+     }
+    }
+   },
+   "flows_when_from": "annotated",
+   "lane": "main",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_IDS_TO_RUNINFO->topic.versions[versions]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:SRA_IDS_TO_RUNINFO",
+   "to": "topic.versions",
+   "name": "versions",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_RUNINFO_TO_FTP->topic.versions[versions]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:SRA_RUNINFO_TO_FTP",
+   "to": "topic.versions",
+   "name": "versions",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:SRA_FASTQ_FTP->topic.versions[versions]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:SRA_FASTQ_FTP",
+   "to": "topic.versions",
+   "name": "versions",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "ftp"
+      },
+      "data": [
+       {
+        "expr": "meta.fastq_aspera || meta.fastq_1",
+        "text": "the run has an Aspera or an FTP link"
+       }
+      ]
+     },
+     {
+      "params": {
+       "download_method": "aspera"
+      },
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera",
+        "text": "the run has no Aspera link"
+       },
+       {
+        "expr": "meta.fastq_1",
+        "text": "the run has an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:CUSTOM_SRATOOLSNCBISETTINGS->topic.versions[versions]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:CUSTOM_SRATOOLSNCBISETTINGS",
+   "to": "topic.versions",
+   "name": "versions",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH->topic.versions[versions1]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH",
+   "to": "topic.versions",
+   "name": "versions1",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH->topic.versions[versions2]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_PREFETCH",
+   "to": "topic.versions",
+   "name": "versions2",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP->topic.versions[versions1]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP",
+   "to": "topic.versions",
+   "name": "versions1",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP->topic.versions[versions2]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS:SRATOOLS_FASTERQDUMP",
+   "to": "topic.versions",
+   "name": "versions2",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "any": [
+     {
+      "params": {
+       "download_method": "sratools"
+      }
+     },
+     {
+      "data": [
+       {
+        "expr": "!meta.fastq_aspera && !meta.fastq_1",
+        "text": "the run has neither an Aspera nor an FTP link"
+       }
+      ]
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI->topic.versions[versions]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:ASPERA_CLI",
+   "to": "topic.versions",
+   "name": "versions",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "aspera"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera",
+      "text": "the run has an Aspera link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:FASTQDL->topic.versions[versions]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:FASTQDL",
+   "to": "topic.versions",
+   "name": "versions",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when": {
+    "params": {
+     "skip_fastq_download": false
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "download_method": "fastq-dl"
+    },
+    "data": [
+     {
+      "expr": "meta.fastq_aspera || meta.fastq_1",
+      "text": "the run has an Aspera or an FTP link"
+     }
+    ]
+   },
+   "flows_when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq"
+   ]
+  },
+  {
+   "id": "NFCORE_FETCHNGS:FETCHNGS:MULTIQC_MAPPINGS_CONFIG->topic.versions[versions]",
+   "from": "NFCORE_FETCHNGS:FETCHNGS:MULTIQC_MAPPINGS_CONFIG",
+   "to": "topic.versions",
+   "name": "versions",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "files": "none: values, collected through channel.topic('versions')",
+    "from": {
+     "shape": "declared",
+     "meta": "declared",
+     "cardinality": "annotated",
+     "files": "declared"
+    }
+   },
+   "when_from": "annotated",
+   "flows_when": {
+    "params": {
+     "sample_mapping_fields": {
+      "present": true
+     }
+    }
+   },
+   "flows_when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "topic.versions->FETCHNGS/toList@versions",
+   "from": "topic.versions",
+   "to": "FETCHNGS/toList@versions",
+   "contents": {
+    "shape": "[process, tool, version]",
+    "meta": null,
+    "cardinality": {
+     "kind": "queue",
+     "per": "task"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/toList@versions->FETCHNGS/map@versions_yaml",
+   "from": "FETCHNGS/toList@versions",
+   "to": "FETCHNGS/map@versions_yaml",
+   "contents": {
+    "shape": "[[process, tool, version], ...]",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/map@versions_yaml->FETCHNGS/collectFile@versions",
+   "from": "FETCHNGS/map@versions_yaml",
+   "to": "FETCHNGS/collectFile@versions",
+   "contents": {
+    "shape": "string",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "files": "none: YAML text",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  },
+  {
+   "id": "FETCHNGS/collectFile@versions->out.versions[versions]",
+   "from": "FETCHNGS/collectFile@versions",
+   "to": "out.versions",
+   "name": "versions",
+   "contents": {
+    "shape": "path",
+    "meta": null,
+    "cardinality": {
+     "kind": "single"
+    },
+    "files": "nf_core_fetchngs_software_versions.yml, published",
+    "from": {
+     "shape": "annotated",
+     "meta": "annotated",
+     "cardinality": "annotated",
+     "files": "annotated"
+    }
+   },
+   "when_from": "annotated",
+   "lane": "versions",
+   "observed_in": [
+    "baseline",
+    "dl_aspera",
+    "dl_fastqdl",
+    "dl_sratools",
+    "dl_sratools_dbgap",
+    "dl_ftp_dbgap",
+    "nfcore_rnaseq",
+    "skip_download"
+   ]
+  }
+ ]
+}

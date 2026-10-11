@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: process-flow
+abstract: >-
+  A channel viewer for Nextflow pipelines. One command runs a pipeline's test
+  and writes a self-contained HTML page beside its MultiQC report: every
+  process, operator and channel, what each channel carried in that run (meta
+  keys, items, provenance, from Nextflow's data lineage), and the conditions
+  under which each element exists, read from the pipeline's code or from a
+  model its authors published. For authors, an Analyser proves those
+  conditions over an adaptive matrix of preview runs.
+type: software
+authors:
+  - family-names: Owen
+    given-names: Nicholas
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+# not yet created: the repository this is planned for
+repository-code: "https://github.com/nicholas-owen/process-flow"
+url: "https://github.com/nicholas-owen/process-flow"
+license: GPL-3.0-or-later
+version: 0.1.0
+date-released: "2026-10-12"
+keywords:
+  - bioinformatics
+  - nextflow
+  - nf-core
+  - workflow-visualisation
+  - data-lineage
+  - provenance
+  - reproducibility

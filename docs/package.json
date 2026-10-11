@@ -1,0 +1,13 @@
+{
+  "name": "process-flow-user-guide",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generator for the process-flow Word user guide (process-flow_User_Guide.docx).",
+  "scripts": {
+    "build": "node build_user_guide.js"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "docx": "9.6.1"
+  }
+}

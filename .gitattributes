@@ -1,0 +1,8 @@
+# Unix line endings everywhere: the scripts run on Linux and WSL, where a
+# Windows checkout's CRLF (core.autocrlf) would break them.
+* text=auto eol=lf
+
+# generated or binary: never touched
+*.docx binary
+*.png  binary
+*.pptx binary

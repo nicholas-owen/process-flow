@@ -1,0 +1,27 @@
+# scratch output of the tools (models, pages, matrix runs); examples/ holds what ships
+out/
+
+# working data: pipeline sources pulled for analysis (third-party code),
+# real-run bundles, preview DAGs; the plan and findings stay
+working_docs/*
+!working_docs/channel-viewer-plan-*.md
+
+# Nextflow and process-flow run state, if a run is launched in the repo
+work/
+.nextflow/
+.nextflow.log*
+.lineage/
+.process-flow/
+results/
+
+# Node (docs/build_user_guide.js) and Python
+docs/node_modules/
+__pycache__/
+*.pyc
+
+# editors, assistants and OS
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

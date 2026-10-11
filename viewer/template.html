@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+  /* Generic channel viewer. Styling carried over from the rnaseq-flow
+     prototype (working_docs/channel-schematic/channels_template.html). */
+  :root {
+    --pf-bg:     #f7f8fa;
+    --pf-card:   #ffffff;
+    --pf-border: #e5e7eb;
+    --pf-text:   #1f2937;
+    --pf-muted:  #6b7280;
+    --pf-accent: #1f4e79;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--pf-bg);
+    color: var(--pf-text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .card { background: var(--pf-card); border: 1px solid var(--pf-border); border-radius: 10px; }
+  /* ---- header ------------------------------------------------------------ */
+  header.card { margin: 14px 14px 0; padding: 14px 20px; display: flex; align-items: center; gap: 22px; }
+  header img { width: 200px; height: auto; display: block; }
+  header h1 { margin: 0; font-size: 20px; font-weight: 700; color: var(--pf-accent); }
+  header .sub { margin: 2px 0 0; color: var(--pf-muted); font-size: 13px; }
+  header .ver { margin-left: auto; font-size: 12px; color: var(--pf-muted); text-align: right; white-space: nowrap; }
+  /* process-flow's own logo and name, top left; the pipeline's logo, if any, sits by the version */
+  header .pf-brand { display: block; flex: none; line-height: 0; }
+  header .pf-brand img { width: 210px; }
+  header .divider { align-self: stretch; width: 1px; background: var(--pf-border); flex: none; }
+  header .pipe-logo { display: flex; align-items: center; gap: 14px; margin-left: auto; }
+  header .pipe-logo img { width: 150px; }
+  header .pipe-logo .ver { margin-left: 0; }
+  /* ---- three-column layout ----------------------------------------------- */
+  .layout { display: grid; grid-template-columns: 260px 1fr 360px; gap: 14px; padding: 14px; height: calc(100vh - 92px); min-height: 560px; }
+  .layout > .card { overflow: auto; min-width: 0; }
+  aside.filters { padding: 12px 14px; }
+  aside.detail  { padding: 14px 16px; }
+  main.graph { position: relative; overflow: hidden; }
+  /* ---- filters ------------------------------------------------------------ */
+  .grp { margin-bottom: 12px; }
+  .grp > .k { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--pf-muted); font-weight: 700; margin-bottom: 4px; }
+  .grp > .k[title] { cursor: help; text-decoration: underline dotted; }
+  select, button { font: inherit; font-size: 13px; color: var(--pf-text); border: 1px solid var(--pf-border); border-radius: 6px; background: #fff; padding: 4px 8px; }
+  select { width: 100%; }
+  button { cursor: pointer; }
+  button:hover { border-color: #cfd4da; background: #fafbfc; }
+  .chk { display: flex; align-items: center; gap: 7px; font-size: 13px; margin: 3px 0; cursor: pointer; }
+  .chk input { margin: 0; }
+  .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+  .flagrow { display: grid; grid-template-columns: 1fr 74px; gap: 6px; align-items: center; margin: 3px 0; font-size: 13px; }
+  .flagrow code { font-size: 11px; overflow-wrap: normal; word-break: normal; }
+  .flagrow select { padding: 2px 4px; font-size: 12px; }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .row button { flex: 1; }
+  .note { font-size: 12px; color: var(--pf-muted); margin: 6px 0 0; }
+  details.fold > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 6px; }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary::before { content: "\25B8"; font-size: 10px; }
+  details.fold[open] > summary::before { content: "\25BE"; }
+  details.fold > summary.lst { text-transform: none; letter-spacing: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  details.fold > summary .cnt { font-weight: 400; color: var(--pf-muted); text-transform: none; letter-spacing: 0; }
+  details.fold > summary .nset { font-weight: 700; color: #1c7ed6; text-transform: none; letter-spacing: 0; }
+  .imp { display: inline-block; min-width: 14px; padding: 0 4px; border-radius: 7px; font-size: 10px; line-height: 14px;
+         text-align: center; background: #e9ecef; color: #495057; font-family: inherit; font-weight: 600; vertical-align: 1px; }
+  #f-find { width: 100%; box-sizing: border-box; padding: 4px 6px; font-size: 12px; }
+  .count { font-size: 12px; color: var(--pf-muted); margin-top: 8px; border-top: 1px solid var(--pf-border); padding-top: 8px; }
+  /* ---- graph -------------------------------------------------------------- */
+  .toolbar { position: absolute; top: 10px; left: 10px; z-index: 2; display: flex; gap: 6px; align-items: center;
+             background: rgba(255,255,255,.92); border: 1px solid var(--pf-border); border-radius: 8px; padding: 6px 8px; }
+  .legend { position: absolute; bottom: 10px; left: 10px; z-index: 2; background: rgba(255,255,255,.94); border: 1px solid var(--pf-border);
+            border-radius: 8px; padding: 8px 10px; font-size: 12px; display: grid; grid-template-columns: auto auto; gap: 3px 14px; max-width: calc(100% - 20px); }
+  .legend .li { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .legend .line { width: 22px; height: 3px; border-radius: 2px; }
+  .legend .box { width: 16px; height: 11px; border: 1.5px solid #555; border-radius: 3px; background: #fff; }
+  .legend .box.op { border-radius: 8px; width: 14px; height: 14px; }
+  .legend .box.ch { border-style: dashed; }
+  .legend .box.io { background: #f1f3f5; }
+  .legend .box.st { background: repeating-linear-gradient(45deg,#fff,#fff 3px,#e9ecef 3px,#e9ecef 5px); border-style: dashed; }
+  .legend .box.may { border-style: dotted; border-width: 2px; }
+  .legend .box.grp { border-style: dashed; border-color: #adb5bd; background: #f8f9fa; }
+  svg#g { width: 100%; height: 100%; display: block; cursor: grab; }
+  svg#g:active { cursor: grabbing; }
+  /* nodes. Strokes keep their screen width at every zoom, so route colours read
+     as metro lines when the whole graph is fitted; labels hide once too small. */
+  .n rect, .n ellipse { fill: #fff; stroke: #495057; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+  svg.far text { display: none; }
+  .n text { font-size: 11.5px; fill: var(--pf-text); pointer-events: none; }
+  .n.process rect { rx: 6; ry: 6; stroke-width: 2; }
+  .n.process text { font-weight: 700; font-size: 12px; }
+  .n.operator ellipse { fill: #fbfcfd; }
+  .n.operator text { font-family: ui-monospace, Consolas, monospace; font-size: 10px; }
+  .n.channel rect { rx: 12; ry: 12; stroke-dasharray: 5 3; fill: #fbfcfd; }
+  .n.channel text { font-family: ui-monospace, Consolas, monospace; font-size: 11px; }
+  .n.input rect, .n.param rect, .n.source rect, .n.output rect { rx: 3; ry: 3; fill: #f1f3f5; }
+  .n.input text, .n.param text, .n.output text, .n.source text { font-family: ui-monospace, Consolas, monospace; font-size: 10.5px; }
+  .n.group rect { rx: 8; ry: 8; fill: #f8f9fa; stroke-dasharray: 6 3; stroke-width: 2; }
+  .n.group text { font-weight: 700; font-size: 12px; }
+  .n.starved rect, .n.starved ellipse { stroke-dasharray: 6 3; fill: url(#hatch); }
+  .n.may rect, .n.may ellipse { stroke-dasharray: 2 3; stroke-width: 2.2; }
+  .n { cursor: pointer; }
+  .n.dim, .e.dim { opacity: .16; }
+  .n.sel rect, .n.sel ellipse { stroke-width: 3.5; filter: drop-shadow(0 0 3px rgba(0,0,0,.35)); }
+  .n.hl rect, .n.hl ellipse { stroke-width: 3; }
+  .cluster rect { fill: rgba(241,243,245,.45); stroke: #ced4da; stroke-width: 1.2; stroke-dasharray: 6 4; rx: 10; ry: 10; vector-effect: non-scaling-stroke; }
+  .cluster text { font-size: 11px; fill: var(--pf-muted); font-weight: 700; letter-spacing: .03em; cursor: pointer; }
+  /* edges */
+  .e path { fill: none; stroke: #868e96; stroke-width: 1.6; }
+  .e path.vis { vector-effect: non-scaling-stroke; }
+  .e path.hit { stroke: transparent; stroke-width: 12; cursor: pointer; }
+  .e.lane-hub path.vis { stroke-width: 1.1; stroke-dasharray: 2 3; }
+  .e.lane-plain path.vis { stroke-width: 1; stroke-dasharray: 1 3; }
+  .e.starved path.vis { stroke-dasharray: 6 3; }
+  .e.may { opacity: .55; }
+  .e.hl path.vis { stroke-width: 3; }
+  .e.sel path.vis { stroke-width: 3.6; }
+  .e text { font-size: 9.5px; fill: var(--pf-muted); font-family: ui-monospace, Consolas, monospace; pointer-events: none; }
+  .e.hl text, .e.sel text { fill: var(--pf-text); font-weight: 700; }
+  /* ---- detail panel ------------------------------------------------------ */
+  .detail h2 { margin: 0 0 2px; font-size: 15px; color: var(--pf-accent); word-break: break-word; }
+  .detail .kind { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--pf-muted); font-weight: 700; }
+  .detail table { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 12.5px; }
+  .detail th { text-align: left; vertical-align: top; color: var(--pf-muted); font-weight: 600; padding: 4px 8px 4px 0; width: 92px; white-space: nowrap; }
+  .detail td { padding: 4px 0; vertical-align: top; word-break: break-word; }
+  .detail code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; background: #f1f3f5; border-radius: 3px; padding: 0 3px; }
+  .detail .notes { margin-top: 10px; padding: 8px 10px; background: #fffbeb; border-left: 3px solid #d97706; border-radius: 6px; font-size: 12.5px; }
+  .detail .starv { margin-top: 10px; padding: 8px 10px; background: #fff1f2; border-left: 3px solid #c2255c; border-radius: 6px; font-size: 12.5px; }
+  .detail .mayb { margin-top: 10px; padding: 8px 10px; background: #f1f5ff; border-left: 3px solid #1c7ed6; border-radius: 6px; font-size: 12.5px; }
+  .detail h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--pf-muted); margin: 14px 0 4px; }
+  .detail ul { margin: 0; padding-left: 16px; font-size: 12.5px; }
+  .detail li { margin: 2px 0; }
+  .detail a { color: var(--pf-accent); text-decoration: none; cursor: pointer; }
+  .detail a:hover { text-decoration: underline; }
+  .detail .empty { color: var(--pf-muted); font-size: 13px; }
+  .when { font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; }
+  .prov { display: inline-block; font-size: 10px; padding: 0 5px; border-radius: 8px; margin-left: 4px; vertical-align: 1px;
+          border: 1px solid var(--pf-border); color: var(--pf-muted); background: #fff; font-family: system-ui, sans-serif; }
+  .prov.unknown { border-color: #f59f00; color: #b35c00; background: #fff9db; }
+  .ex { margin-top: 10px; border: 1px solid var(--pf-border); border-radius: 6px; background: #fbfcfd; }
+  .ex .exh { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-bottom: 1px solid var(--pf-border);
+             font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--pf-muted); font-weight: 700; }
+  .ex .exh select { width: auto; padding: 1px 4px; font-size: 11px; text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: auto; }
+  .ex pre { margin: 0; padding: 7px 9px; font-family: ui-monospace, Consolas, monospace; font-size: 11px; line-height: 1.45; white-space: pre-wrap; word-break: break-all; color: var(--pf-text); }
+  .ex .more { display: block; padding: 4px 9px 6px; font-size: 11px; color: var(--pf-accent); cursor: pointer; }
+  .exi { margin: 3px 0 6px 16px; padding-left: 3em; text-indent: -3em; font-family: ui-monospace, Consolas, monospace;
+         font-size: 10.5px; line-height: 1.4; color: var(--pf-text); white-space: pre-wrap; word-break: break-all; }
+  .exi .exl { color: var(--pf-muted); }
+  .exi a.more-i { color: var(--pf-accent); cursor: pointer; }
+  .pill { display: inline-block; padding: 0 6px; border-radius: 10px; font-size: 11px; border: 1px solid var(--pf-border); background: #f8f9fa; margin: 1px 2px 1px 0; }
+  footer { padding: 0 14px 14px; color: var(--pf-muted); font-size: 12px; }
+  @media (max-width: 1100px) {
+    header .pipe-logo img { display: none; }
+    .layout { grid-template-columns: 230px 1fr; grid-template-rows: 1fr auto; height: auto; }
+    aside.detail { grid-column: 1 / -1; max-height: 40vh; }
+    main.graph { height: 62vh; }
+  }
+  @media (max-width: 700px) {
+    header.card { flex-wrap: wrap; margin: 10px 10px 0; padding: 12px 16px; }
+    header .ver { margin-left: 0; text-align: left; white-space: normal; }
+    header .divider { display: none; }
+    header .pipe-logo { margin-left: 0; flex-wrap: wrap; }
+    .layout { grid-template-columns: 1fr; padding: 10px; }
+    aside.filters { max-height: 40vh; }
+  }
+</style>
+</head>
+<body>
+
+<header class="card">
+  <span class="pf-brand" title="process-flow: Nextflow channel viewer">__PFLOGO__</span>
+  <span class="divider"></span>
+  <div>
+    <h1 id="title">Channel viewer</h1>
+    <p class="sub">Every process, every operator, and what each channel carries. Click anything for its record; hover to trace upstream and downstream.</p>
+  </div>
+  <div class="pipe-logo">__LOGO__<div class="ver" id="ver"></div></div>
+</header>
+
+<div class="layout">
+  <aside class="card filters">
+    <div id="dims"></div>
+    <div class="grp" id="lanes-grp"><div class="k">Lanes</div><div id="lanes"></div></div>
+    <div class="grp" id="groups-grp"><div class="k">Subworkflows</div><div id="groups"></div></div>
+    <div class="grp"><div class="k">Filtered-out elements</div>
+      <select id="f-mode"><option value="grey">greyed, layout kept</option><option value="hide">hidden, re-laid out</option></select></div>
+    <div class="row"><button id="b-reset">Reset filters</button></div>
+    <div class="count" id="count"></div>
+  </aside>
+
+  <main class="card graph">
+    <div class="toolbar">
+      <button id="b-fit" title="Fit the whole graph">Fit</button>
+      <button id="b-in" title="Zoom in">+</button><button id="b-out" title="Zoom out">&minus;</button>
+      <span style="font-size:12px;color:var(--pf-muted);margin-left:6px">wheel to zoom, drag to pan</span>
+    </div>
+    <div class="legend" id="legend"></div>
+    <svg id="g" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#868e96"/></marker>
+        <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fff"/><line x1="0" y1="0" x2="0" y2="6" stroke="#dde1e6" stroke-width="2"/></pattern>
+      </defs>
+      <g id="vp"></g>
+    </svg>
+  </main>
+
+  <aside class="card detail" id="detail">
+    <p class="empty">Click a process, operator, channel or edge.</p>
+  </aside>
+</div>
+
+<footer id="footer"></footer>
+
+<script id="channel-data" type="application/json">__DATA__</script>
+<script>/*__DAGRE__*/</script>
+<script>
+(function () {
+  "use strict";
+  const DATA = JSON.parse(document.getElementById("channel-data").textContent);
+  const DIMS = new Map(DATA.dimensions.map(d => [d.id, d]));
+  const ROUTES = DATA.routes || null;
+  const ROUTE_DIM = ROUTES ? ROUTES.dimension : null;
+  const ROUTE_VALUES = ROUTES ? (DIMS.get(ROUTE_DIM).values || Object.keys(ROUTES.colours)) : [];
+  const RCOL = ROUTES ? ROUTES.colours : {};
+  const PAL = DATA.palette || {};
+  const LANES = new Map((DATA.lanes || []).map(l => [l.id, l]));
+  const PREFIX = (DATA.pipeline && DATA.pipeline.prefix) || [];
+  const nodesById = new Map(DATA.nodes.map(n => [n.id, n]));
+  const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const dimLabel = d => d.label || (d.param ? "--" + d.param : d.id);
+
+  // ---- predicates: a port of tools/predicates.py, which is the reference ----
+  // Three-valued: true, false or null (unknown). A setting left at "any" is
+  // null; several route values ticked that only partly match give null; a
+  // data clause always gives null.
+  function and3(vals) { if (vals.some(v => v === false)) return false; return vals.every(v => v === true) ? true : null; }
+  function or3(vals) { if (vals.some(v => v === true)) return true; return vals.every(v => v === false) ? false : null; }
+  function cond(dim, c, setting) {
+    if (setting === null || setting === undefined) return null;
+    if (Array.isArray(setting)) {
+      const r = setting.map(s => cond(dim, c, s));
+      if (r.every(x => x === true)) return true;
+      if (r.every(x => x === false)) return false;
+      return null;
+    }
+    if (c && typeof c === "object" && !Array.isArray(c) && "present" in c)
+      return (setting !== false && setting !== "absent") === c.present;
+    if (c && typeof c === "object" && !Array.isArray(c)) {
+      const order = dim.values, pos = order.indexOf(setting);
+      if ("min" in c && pos < order.indexOf(c.min)) return false;
+      if ("max" in c && pos > order.indexOf(c.max)) return false;
+      return true;
+    }
+    if (Array.isArray(c)) return c.includes(setting);
+    if (dim.kind === "boolean") return !!setting === !!c;
+    return setting === c;
+  }
+  function holds(p, s) {
+    if (!p || !Object.keys(p).length) return true;
+    const parts = Object.entries(p.params || {}).map(([d, c]) => cond(DIMS.get(d), c, s[d]));
+    if (p.any) parts.push(or3(p.any.map(a => holds(a, s))));
+    if (p.not) { const v = holds(p.not, s); parts.push(v === null ? null : !v); }
+    if (p.data && p.data.length) parts.push(null);
+    return and3(parts);
+  }
+  // Both predicates. Parts of one predicate are ANDed, and not(not(b)) is b in
+  // three-valued logic too, so this needs no new predicate syntax.
+  const andPred = (a, b) => !a || !Object.keys(a).length ? b : !b || !Object.keys(b).length ? a : { any: [a], not: { not: b } };
+  const hasData = p =>!!p && (!!(p.data && p.data.length) || (p.any || []).some(hasData) || hasData(p.not));
+  // Exact evaluation, as given() in tools/predicates.py: when the quick answer
+  // is unknown, enumerate the unset dimensions the predicates mention, keep
+  // the combinations consistent with conds, and answer only if all agree.
+  function vars(p, out) {
+    out = out || new Set();
+    if (p) { for (const d of Object.keys(p.params || {})) out.add(d); for (const a of p.any || []) vars(a, out); vars(p.not, out); }
+    return out;
+  }
+  const domain = d => d.kind === "boolean" ? [true, false] : d.kind === "presence" ? ["present", "absent"] : d.values;
+  // What the explicitly set dimensions imply. Not chained.
+  const implied = s => DATA.dimensions.filter(d => d.implies && s[d.id] !== null && s[d.id] !== undefined).map(d => d.implies);
+  function given(p, s, conds) {
+    const r = holds(p, s);
+    if (r !== null) return r;
+    const all = vars(p); for (const c of conds) vars(c, all);
+    const free = [...all].filter(d => s[d] === null || s[d] === undefined);
+    if (!free.length) return null;
+    const doms = free.map(d => domain(DIMS.get(d))), idx = free.map(() => 0);
+    let seen, ok = false;
+    for (;;) {
+      const s2 = Object.assign({}, s);
+      free.forEach((d, i) => { s2[d] = doms[i][idx[i]]; });
+      if (!conds.some(c => holds(c, s2) === false)) {
+        ok = true;
+        const v = holds(p, s2);
+        if (seen === undefined) seen = v; else if (seen !== v) return null;
+      }
+      let i = 0;
+      while (i < idx.length && ++idx[i] === doms[i].length) idx[i++] = 0;
+      if (i === idx.length) break;
+    }
+    return ok ? seen : null;
+  }
+  // Memo per settings: a filter change evaluates every element several times.
+  let memoKey = null, memo = new WeakMap();
+  function memoFor(s) {
+    const key = JSON.stringify(s);
+    if (key !== memoKey) { memoKey = key; memo = new WeakMap(); }
+    return memo;
+  }
+  // absent | starved | may | flows. See schema/README.md. Starvation is
+  // judged among the combinations in which the element exists.
+  function state(el, s) {
+    const m = memoFor(s);
+    if (m.has(el)) return m.get(el);
+    const conds = implied(s);
+    let st;
+    if (given(el.when, s, conds) === false) st = "absent";
+    else {
+      const f = given(el.flows_when, s, el.when ? conds.concat([el.when]) : conds);
+      st = f === false ? "starved" : f === null && hasData(el.flows_when) ? "may" : "flows";
+    }
+    m.set(el, st);
+    return st;
+  }
+
+  // ---- header and footer --------------------------------------------------
+  const P = DATA.pipeline;
+  document.getElementById("title").textContent = `${P.name}: channels`;
+  const nProc = DATA.nodes.filter(n => n.kind === "process").length, nOp = DATA.nodes.filter(n => n.kind === "operator").length;
+  const nEx = DATA.edges.filter(e => e.examples).length;
+  document.getElementById("ver").innerHTML =
+    `${P.version ? `version <b>${esc(P.version)}</b>` : ""}${P.revision && /^[0-9a-f]{7,}$/.test(P.revision) ? ` &middot; <code>${esc(P.revision.slice(0, 10))}</code>` : ""}<br>` +
+    `${nProc} processes &middot; ${nOp} operators &middot; ${DATA.edges.length} channels${nEx ? ` &middot; ${nEx} with worked examples` : ""}`;
+  const EV = (DATA.generated && DATA.generated.evidence) || null;
+  const okRuns = EV ? EV.runs_ok : (DATA.runs || []).filter(r => r.status === "ok").length;
+  const badRuns = EV ? EV.runs_failed : (DATA.runs || []).length - okRuns;
+  document.getElementById("footer").innerHTML =
+    `Built by process-flow from a schema ${esc(DATA.schema_version)} channel model` +
+    (DATA.generated && DATA.generated.tool ? ` (<code>${esc(DATA.generated.tool)}</code>)` : "") +
+    (okRuns ? `, checked against ${okRuns} <code>nextflow run -preview -with-dag</code> graph${okRuns > 1 ? "s" : ""}${badRuns ? ` (${badRuns} preview${badRuns > 1 ? "s" : ""} failed)` : ""}` : "") +
+    (EV ? `; published model${DATA.generated.process_flow_version ? ` (process-flow ${esc(DATA.generated.process_flow_version)})` : ""}` +
+      `, ${EV.disagreements === 0 ? "every condition fits every run" : `${EV.disagreements} condition/run disagreements`}` +
+      `${EV.unsettled && EV.unsettled.length ? `, ${EV.unsettled.length} not settled` : ""}` +
+      `${EV.fixed_args && EV.fixed_args.length ? `; fixed in every run: ${EV.fixed_args.map(f => `<code>--${esc(f.param)} ${esc(f.value)}</code>`).join(" ")}` : ""}` +
+      `${EV.params_not_varied && EV.params_not_varied.length ? `; exact with these at the test profile's values: ${EV.params_not_varied.map(p => `<code>${esc(p)}</code>`).join(" ")}` : ""}` : "") +
+    (() => {
+      const els = DATA.nodes.concat(DATA.edges);
+      const src = els.filter(x => x.when_from === "source").length, unk = els.filter(x => x.when_from === "unknown").length;
+      return src ? `; conditions of ${src} of ${els.length} nodes and channels read from the code (marked <i>source</i>: ` +
+        `exact for processes where the code is plain, less sure for operators and channels than a preview matrix)` +
+        (unk ? `, ${unk} not decided` : "") : "";
+    })() +
+    `. Layout by dagre (MIT).`;
+
+  // ---- filter controls, built from the declared dimensions ----------------
+  // how many processes each dimension decides: what its filter changes
+  const mentions = (p, out) => {
+    if (!p) return out;
+    for (const k of Object.keys(p.params || {})) out.add(k);
+    for (const a of p.any || []) mentions(a, out);
+    if (p.not) mentions(p.not, out);
+    return out;
+  };
+  const IMPACT = new Map(DATA.dimensions.map(d => [d.id, 0]));
+  for (const n of DATA.nodes) if (n.kind === "process") for (const k of mentions(n.when, new Set())) IMPACT.set(k, (IMPACT.get(k) || 0) + 1);
+  const dimsBox = document.getElementById("dims");
+  const flagDims = DATA.dimensions.filter(d => d.id !== ROUTE_DIM && (d.kind === "boolean" || d.kind === "presence"));
+  const byImpact = [...DATA.dimensions].sort((a, b) => (b.id === ROUTE_DIM) - (a.id === ROUTE_DIM) || (IMPACT.get(b.id) || 0) - (IMPACT.get(a.id) || 0));
+  for (const d of byImpact) {
+    if (d.id === ROUTE_DIM) {
+      const g = document.createElement("div"); g.className = "grp";
+      g.innerHTML = `<div class="k"${d.description ? ` title="${esc(d.description)}"` : ""}>${esc(dimLabel(d))} route</div>` +
+        ROUTE_VALUES.map(v => `<label class="chk"><input type="checkbox" class="f-route" value="${esc(v)}"><span class="sw" style="background:${esc(RCOL[v] || "#495057")}"></span>${esc(v)}</label>`).join("") +
+        `<p class="note">None ticked shows every route: each element in the colour of the one or two routes that use it, anything shared more widely in its own colour. Tick one to light its whole line; tick two for both.</p>`;
+      dimsBox.appendChild(g);
+    } else if (d.kind === "enum" || d.kind === "ordinal") {
+      const g = document.createElement("div"); g.className = "grp";
+      const tip = [d.description, d.derived_from ? `derived: ${d.derived_from}` : ""].filter(Boolean).join(" — ");
+      const imp = IMPACT.get(d.id) || 0;
+      g.innerHTML = `<div class="k"${tip ? ` title="${esc(tip)}"` : ""}>${esc(dimLabel(d))}${imp ? ` <span class="imp" title="processes it changes">${imp}</span>` : ""}</div>` +
+        `<select class="f-dim" data-dim="${esc(d.id)}"><option value="">any</option>` +
+        d.values.map(v => `<option value="${esc(v)}">${esc(v)}${v === d.default ? " (default)" : ""}</option>`).join("") + `</select>`;
+      dimsBox.appendChild(g);
+    }
+  }
+  // on/off and set/unset options: grouped by the schema section they come
+  // from (a list param's per-value switches together under the list), the
+  // sections and the options in them ordered by how many processes they
+  // change; sections fold, the busiest open
+  if (flagDims.length) {
+    const sections = new Map();
+    for (const d of flagDims) {
+      const key = d.list_value ? `list:${d.param}` : `grp:${d.group || "Options"}`;
+      if (!sections.has(key)) sections.set(key, {
+        title: d.list_value ? dimLabel({ param: d.param }) : (d.group || "Options"),
+        list: !!d.list_value, dims: [] });
+      sections.get(key).dims.push(d);
+    }
+    const weight = sec => Math.max(...sec.dims.map(d => IMPACT.get(d.id) || 0));
+    const ordered = [...sections.values()].sort((a, b) => weight(b) - weight(a) || a.title.localeCompare(b.title));
+    for (const sec of ordered) sec.dims.sort((a, b) => (IMPACT.get(b.id) || 0) - (IMPACT.get(a.id) || 0) || a.id.localeCompare(b.id));
+    if (flagDims.length > 8) {
+      const f = document.createElement("div"); f.className = "grp";
+      f.innerHTML = `<input type="search" id="f-find" placeholder="find an option (${flagDims.length})" aria-label="find an option">`;
+      dimsBox.appendChild(f);
+    }
+    ordered.forEach((sec, i) => {
+      const g = document.createElement(ordered.length > 1 ? "details" : "div"); g.className = "grp fold";
+      if (ordered.length > 1 && (i < 2 || weight(sec) >= 5)) g.open = true;
+      const head = ordered.length > 1
+        ? `<summary class="k${sec.list ? " lst" : ""}">${esc(sec.title)} <span class="cnt">${sec.list ? `one switch per value, ${sec.dims.length}` : sec.dims.length}</span><span class="nset"></span></summary>`
+        : `<div class="k">Options</div>`;
+      g.innerHTML = head + sec.dims.map(d => {
+        const opts = d.kind === "boolean" ? [["true", "on"], ["false", "off"]] : [["present", "set"], ["absent", "unset"]];
+        const imp = IMPACT.get(d.id) || 0;
+        const name = sec.list ? d.list_value : dimLabel(d);
+        return `<div class="flagrow" data-find="${esc((d.param || d.id) + " " + (d.list_value || "") + " " + (d.description || "")).toLowerCase()}">` +
+               `<code title="${esc(d.description || "")}">${esc(name).replace(/_/g, "_<wbr>")}${imp ? ` <span class="imp" title="processes it changes">${imp}</span>` : ""}</code>` +
+               `<select class="f-dim" data-dim="${esc(d.id)}">` +
+               `<option value="">any</option>${opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></div>`;
+      }).join("");
+      dimsBox.appendChild(g);
+    });
+    const find = document.getElementById("f-find");
+    if (find) find.addEventListener("input", () => {
+      const q = find.value.trim().toLowerCase();
+      for (const row of dimsBox.querySelectorAll(".flagrow")) row.style.display = !q || row.dataset.find.includes(q) ? "" : "none";
+      for (const g of dimsBox.querySelectorAll("details.fold")) {
+        const any = [...g.querySelectorAll(".flagrow")].some(r => r.style.display !== "none");
+        g.style.display = any ? "" : "none";
+        if (q && any) g.open = true;
+      }
+    });
+  }
+  // how many options in each folded section are set away from the
+  // pipeline's default, kept current
+  function markSet() {
+    const off = sel => {
+      if (sel.value === "") return false;
+      const d = DIMS.get(sel.dataset.dim);
+      const def = d.kind === "boolean" ? String(!!d.default) : d.kind === "presence" ? (d.default || "absent") : d.default;
+      return sel.value !== String(def);
+    };
+    for (const g of dimsBox.querySelectorAll("details.fold")) {
+      const n = [...g.querySelectorAll(".f-dim")].filter(off).length;
+      g.querySelector(".nset").textContent = n ? ` · ${n} not default` : "";
+    }
+  }
+  // lanes
+  const lanesBox = document.getElementById("lanes");
+  const extraLanes = (DATA.lanes || []).filter(l => l.id !== "main");
+  if (!extraLanes.length) document.getElementById("lanes-grp").style.display = "none";
+  for (const l of extraLanes) {
+    const modes = l.hub ? [["folded", "folded"], ["expanded", "every op"], ["hidden", "hidden"]] : [["hidden", "hidden"], ["expanded", "shown"]];
+    const row = document.createElement("div"); row.className = "flagrow";
+    row.innerHTML = `<span title="${esc(l.label)}">${esc(l.label.length > 28 ? l.id : l.label)}</span><select class="f-lane" data-lane="${esc(l.id)}">` +
+      modes.map(([v, t]) => `<option value="${v}"${v === (l.mode || "folded") ? " selected" : ""}>${t}</option>`).join("") + `</select>`;
+    lanesBox.appendChild(row);
+  }
+
+  // ---- groups (subworkflows), from node paths --------------------------------
+  // A node's group is its path with the shared prefix dropped and, for a
+  // process, its own name dropped. Groups nest by path.
+  const stripPrefix = path => (path && PREFIX.length && PREFIX.every((p, i) => path[i] === p)) ? path.slice(PREFIX.length) : (path || []);
+  const groupOf = n => { const p = stripPrefix(n.path); return (n.kind === "process" ? p.slice(0, -1) : p).join(":"); };
+  const GROUP_META = new Map((DATA.groups || []).map(g => [stripPrefix(g.path).join(":"), g]));
+  const GROUPS = new Map();          // key -> {key, label, parent, members}
+  for (const n of DATA.nodes) {
+    const key = groupOf(n); if (!key) continue;
+    const parts = key.split(":");
+    for (let i = 1; i <= parts.length; i++) {
+      const k = parts.slice(0, i).join(":");
+      if (!GROUPS.has(k)) GROUPS.set(k, { key: k, label: (GROUP_META.get(k) || {}).label || parts[i - 1], parent: parts.slice(0, i - 1).join(":"), members: [] });
+    }
+    GROUPS.get(key).members.push(n.id);
+  }
+  const groupsBox = document.getElementById("groups");
+  if (!GROUPS.size) document.getElementById("groups-grp").style.display = "none";
+  else {
+    groupsBox.innerHTML = `<label class="chk"><input type="checkbox" id="g-boxes" checked>draw subworkflow boxes</label>` +
+      [...GROUPS.values()].map(g => `<label class="chk" style="padding-left:${(g.key.split(":").length - 1) * 12}px" title="${esc(g.key)}">` +
+        `<input type="checkbox" class="f-collapse" value="${esc(g.key)}"${(GROUP_META.get(g.key) || {}).collapsed ? " checked" : ""}>collapse ${esc(g.label)}</label>`).join("");
+  }
+
+  // ---- legend ----------------------------------------------------------------
+  const legend = document.getElementById("legend");
+  const li = html => { const d = document.createElement("div"); d.className = "li"; d.innerHTML = html; legend.appendChild(d); };
+  for (const v of ROUTE_VALUES) li(`<span class="line" style="background:${esc(RCOL[v])}"></span>${esc(v)} route`);
+  for (const [k, c] of Object.entries(PAL)) if (!ROUTE_VALUES.includes(k)) li(`<span class="line" style="background:${esc(c)}"></span>${esc(k === "shared" ? "shared trunk" : k)}`);
+  li(`<span class="box" style="border-width:2px"></span>process`);
+  li(`<span class="box op"></span>operator`);
+  if (DATA.nodes.some(n => n.kind === "channel")) li(`<span class="box ch"></span>named channel`);
+  li(`<span class="box io"></span>input, param, output`);
+  li(`<span class="box st"></span>wired but starved`);
+  if (DATA.nodes.some(n => hasData(n.flows_when))) li(`<span class="box may"></span>may receive items (data)`);
+  if (GROUPS.size) li(`<span class="box grp"></span>collapsed subworkflow`);
+
+  // ---- settings from the controls ---------------------------------------------
+  function settings() {
+    const dims = {};
+    for (const d of DATA.dimensions) dims[d.id] = null;
+    for (const sel of document.querySelectorAll(".f-dim")) {
+      const d = DIMS.get(sel.dataset.dim), v = sel.value;
+      dims[d.id] = v === "" ? null : d.kind === "boolean" ? v === "true" : v;
+    }
+    const ticked = [...document.querySelectorAll(".f-route:checked")].map(c => c.value);
+    if (ROUTE_DIM) dims[ROUTE_DIM] = ticked.length ? ticked : null;
+    const lanes = {};
+    for (const sel of document.querySelectorAll(".f-lane")) lanes[sel.dataset.lane] = sel.value;
+    const collapsed = new Set([...document.querySelectorAll(".f-collapse:checked")].map(c => c.value));
+    const boxes = document.getElementById("g-boxes");
+    return { dims, ticked, lanes, collapsed, boxes: !!(boxes && boxes.checked), mode: document.getElementById("f-mode").value };
+  }
+
+  // ---- colour -------------------------------------------------------------------
+  // A category in the palette other than "shared" keeps its colour whatever is
+  // selected. Everything else is coloured by the routes it sits on.
+  const fixedCat = cat => cat && cat !== "shared" && PAL[cat] && !ROUTE_VALUES.includes(cat);
+  const baseColour = cat => PAL[cat] || RCOL[cat] || PAL.shared || "#495057";
+  // On a route: exists under it, and the route value alone does not starve it.
+  // Starved by another setting (no GTF on a STAR run) it stays on the route,
+  // drawn in the route's colour with the starved hatching; starved by the route
+  // choice itself (ASPERA_CLI when the method is ftp) it is not on that route.
+  const ONLY_ROUTE = r => Object.assign(Object.fromEntries(DATA.dimensions.map(d => [d.id, null])), { [ROUTE_DIM]: r });
+  let routeKey = null, routeMemo = new Map();
+  function onRoute(el, s, r) {
+    const key = JSON.stringify(s.dims);
+    if (key !== routeKey) { routeKey = key; routeMemo = new Map(); }
+    if (!routeMemo.has(r)) {
+      const d = Object.assign({}, s.dims, { [ROUTE_DIM]: r });
+      routeMemo.set(r, { d, conds: implied(d), only: ONLY_ROUTE(r), m: new WeakMap() });
+    }
+    const R = routeMemo.get(r);
+    if (!R.m.has(el)) R.m.set(el, given(el.when, R.d, R.conds) !== false && holds(el.flows_when, R.only) !== false);
+    return R.m.get(el);
+  }
+  function colourOf(el, s, cat) {   // cat: the node's category, or for an edge its source node's
+    if (fixedCat(cat) || !ROUTE_DIM) return [baseColour(cat)];
+    if (s.ticked.length) {
+      const r = s.ticked.filter(v => onRoute(el, s, v));
+      return r.length ? r.map(v => RCOL[v]) : [baseColour(cat)];
+    }
+    const r = ROUTE_VALUES.filter(v => onRoute(el, s, v));
+    if (r.length && r.length <= 2 && r.length < ROUTE_VALUES.length) return r.map(v => RCOL[v]);
+    return [baseColour(cat)];
+  }
+  const edgeCat = e => (nodesById.get(e.from) || {}).category;
+
+  // ---- the drawn graph: lanes, hide mode, collapsed groups ----------------------
+  function drawnGraph(s) {
+    const laneMode = l => (!l || l === "main" ? "expanded" : (s.lanes[l] || (LANES.get(l) || {}).mode || "folded"));
+    const keep = new Set(), edges = [];
+    for (const n of DATA.nodes) if (laneMode(n.lane) === "expanded") keep.add(n.id);
+    for (const l of extraLanes) {
+      if (laneMode(l.id) !== "folded" || !l.hub) continue;
+      keep.add(l.hub);
+      // With a target outside the lane, everything in the lane but the hub is
+      // hidden and the hub joins the target directly. Without one, the hub and
+      // whatever follows it in the lane stay.
+      if (!l.target) {
+        const stack = [l.hub];
+        while (stack.length) {
+          const cur = stack.pop();
+          for (const e of DATA.edges) if (e.lane === l.id && e.from === cur && !keep.has(e.to)) { keep.add(e.to); stack.push(e.to); }
+        }
+      }
+      const seen = new Set();
+      for (const e of DATA.edges) {
+        if (e.lane !== l.id) continue;
+        const src = nodesById.get(e.from);
+        if (!src || src.kind !== "process" || src.lane === l.id) continue;
+        if (e.to === l.hub) { edges.push(e); continue; }
+        if (seen.has(src.id)) continue;
+        seen.add(src.id);
+        edges.push({ id: `fold.${l.id}.${src.id}`, from: src.id, to: l.hub, name: l.id, lane: l.id, synthetic: true,
+                     when: src.when, flows_when: src.flows_when,
+                     notes: `Folded: every ${l.id}-lane operator between this process and the hub is hidden. Set the lane to "every op" to see them.` });
+      }
+      if (l.target && nodesById.has(l.target)) {
+        const hub = nodesById.get(l.hub), tgt = nodesById.get(l.target);
+        edges.push({ id: `fold.${l.id}.hub`, from: l.hub, to: l.target, name: l.id, lane: l.id, synthetic: true,
+                     when: andPred(hub.when, tgt.when), flows_when: tgt.flows_when,
+                     notes: `Folded: the ${l.id} lane between the hub and ${l.target}.` });
+      }
+    }
+    const synthIds = new Set(edges.map(e => e.id));
+    for (const e of DATA.edges) if (!synthIds.has(e.id) && keep.has(e.from) && keep.has(e.to) && laneMode(e.lane) !== "hidden")
+      edges.push(e);
+    let nodes = DATA.nodes.filter(n => keep.has(n.id));
+    let es = edges.filter(e => keep.has(e.from) && keep.has(e.to));
+    if (s.mode === "hide") {
+      const ok = new Set(nodes.filter(n => state(n, s.dims) !== "absent").map(n => n.id));
+      nodes = nodes.filter(n => ok.has(n.id));
+      es = es.filter(e => ok.has(e.from) && ok.has(e.to) && state(e, s.dims) !== "absent");
+    }
+    // collapse: the outermost collapsed ancestor stands in for each member
+    const rep = new Map();
+    const collapsedAncestor = key => {
+      if (!key) return null;
+      const parts = key.split(":");
+      for (let i = 1; i <= parts.length; i++) { const k = parts.slice(0, i).join(":"); if (s.collapsed.has(k)) return k; }
+      return null;
+    };
+    const groupNodes = new Map();
+    for (const n of nodes) {
+      const g = collapsedAncestor(groupOf(n));
+      if (!g) { rep.set(n.id, n.id); continue; }
+      const gid = "group:" + g;
+      rep.set(n.id, gid);
+      if (!groupNodes.has(gid)) groupNodes.set(gid, { id: gid, kind: "group", label: GROUPS.get(g).label, key: g, members: [], path: null });
+      groupNodes.get(gid).members.push(n);
+    }
+    if (groupNodes.size) {
+      nodes = nodes.filter(n => rep.get(n.id) === n.id).concat([...groupNodes.values()]);
+      const merged = new Map();
+      for (const e of es) {
+        const a = rep.get(e.from), b = rep.get(e.to);
+        if (a === b) continue;
+        if (a === e.from && b === e.to) { merged.set(e.id, e); continue; }
+        const k = `${a}->${b}`;
+        if (!merged.has(k)) merged.set(k, { id: `collapsed.${k}`, from: a, to: b, lane: e.lane, synthetic: true, members: [], name: "" });
+        merged.get(k).members.push(e);
+      }
+      es = [...merged.values()];
+      for (const e of es) if (e.members && e.members.length === 1) Object.assign(e, { name: e.members[0].name || "", when: e.members[0].when, flows_when: e.members[0].flows_when });
+    }
+    return { nodes, edges: es };
+  }
+  // State and colour of a collapsed group or a merged edge: the best of its members.
+  const RANK = { flows: 3, may: 2, starved: 1, absent: 0 };
+  function stateOf(el, s) {
+    if (el.kind === "group" || el.members) {
+      const ms = el.kind === "group" ? el.members : el.members;
+      return ms.map(m => stateOf(m, s)).reduce((a, b) => RANK[a] >= RANK[b] ? a : b, "absent");
+    }
+    return state(el, s.dims);
+  }
+  function colourOfAny(el, s, cat) {
+    if (el.kind === "group" || el.members) {
+      const cols = new Set();
+      for (const m of el.members) for (const c of colourOfAny(m, s, m.category || edgeCat(m))) cols.add(c);
+      const arr = [...cols];
+      return arr.length && arr.length <= 2 ? arr : [baseColour("shared")];
+    }
+    return colourOf(el, s, cat);
+  }
+
+  // ---- layout -----------------------------------------------------------------------
+  const SIZE = { process: [176, 34], operator: [150, 22], channel: [150, 26], input: [150, 24], param: [140, 24], output: [166, 24], source: [150, 22], group: [190, 40] };
+  function layout(g, s) {
+    const compound = s.boxes && GROUPS.size > 0;
+    const dg = new dagre.graphlib.Graph({ multigraph: true, compound });
+    dg.setGraph({ rankdir: "LR", nodesep: 14, ranksep: 44, edgesep: 8, marginx: 24, marginy: 24 });
+    dg.setDefaultEdgeLabel(() => ({}));
+    for (const n of g.nodes) { const [w, h] = SIZE[n.kind] || [140, 24]; dg.setNode(n.id, { width: w, height: h }); }
+    if (compound) {
+      const used = new Set();
+      for (const n of g.nodes) {
+        let key = n.kind === "group" ? GROUPS.get(n.key).parent : groupOf(n);
+        if (!key || s.collapsed.has(key)) continue;
+        dg.setParent(n.id, "cluster:" + key);
+        while (key && !used.has(key)) {
+          used.add(key);
+          dg.setNode("cluster:" + key, { label: GROUPS.get(key).label, clusterLabelPos: "top" });
+          const parent = GROUPS.get(key).parent;
+          if (parent) dg.setParent("cluster:" + key, "cluster:" + parent);
+          key = parent;
+        }
+      }
+    }
+    for (const e of g.edges) dg.setEdge(e.from, e.to, e.name ? { width: Math.min(120, e.name.length * 5.6), height: 12, labelpos: "c" } : {}, e.id);
+    try { dagre.layout(dg); }
+    catch (err) {                                  // compound layout can fail on awkward graphs: fall back to flat
+      if (!compound) throw err;
+      console.warn("compound layout failed, drawing without boxes:", err);
+      return layout(g, Object.assign({}, s, { boxes: false }));
+    }
+    return dg;
+  }
+
+  // ---- render -------------------------------------------------------------------------
+  const svg = document.getElementById("g"), vp = document.getElementById("vp");
+  const NS = "http://www.w3.org/2000/svg";
+  // stroke and fill go on the inline style, never as presentation attributes:
+  // any stylesheet rule outranks an attribute (the prototype's grey-page bug).
+  const el = (t, a) => {
+    const x = document.createElementNS(NS, t);
+    for (const k in a) { if (k === "stroke" || k === "fill") x.style[k] = a[k]; else x.setAttribute(k, a[k]); }
+    return x;
+  };
+  let G = null, DG = null, S = null, selected = null;
+  const shortLabel = n => {
+    const l = n.kind === "group" ? `${n.label} (${n.members.length})` : n.label;
+    return l.length > 26 ? l.slice(0, 25) + "…" : l;
+  };
+  function pathFor(points) {
+    if (points.length < 2) return "";
+    let d = `M${points[0].x},${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      const p0 = points[i - 1], p1 = points[i], cx = (p0.x + p1.x) / 2;
+      d += ` C${cx},${p0.y} ${cx},${p1.y} ${p1.x},${p1.y}`;
+    }
+    return d;
+  }
+  const laneClass = l => (!l || l === "main") ? "lane-main" : ((LANES.get(l) || {}).hub ? "lane-hub" : "lane-plain");
+  const byDrawnId = new Map();
+  function render() {
+    S = settings(); G = drawnGraph(S); DG = layout(G, S);
+    byDrawnId.clear();
+    for (const n of G.nodes) byDrawnId.set(n.id, n);
+    for (const e of G.edges) byDrawnId.set(e.id, e);
+    vp.innerHTML = "";
+    const gC = el("g", { class: "clusters" }), gE = el("g", { class: "edges" }), gN = el("g", { class: "nodes" });
+    vp.appendChild(gC); vp.appendChild(gE); vp.appendChild(gN);
+    for (const id of DG.nodes()) {
+      if (!id.startsWith("cluster:")) continue;
+      const c = DG.node(id); if (!c || c.width === undefined) continue;
+      const grp = el("g", { class: "cluster", "data-key": id.slice(8) });
+      grp.appendChild(el("rect", { x: c.x - c.width / 2, y: c.y - c.height / 2, width: c.width, height: c.height }));
+      const t = el("text", { x: c.x - c.width / 2 + 8, y: c.y - c.height / 2 + 13 }); t.textContent = c.label; grp.appendChild(t);
+      t.addEventListener("click", ev => { ev.stopPropagation(); selectGroup(id.slice(8)); });
+      gC.appendChild(grp);
+    }
+    for (const e of G.edges) {
+      const le = DG.edge(e.from, e.to, e.id); if (!le) continue;
+      const d = pathFor(le.points);
+      const grp = el("g", { class: `e ${laneClass(e.lane)}`, "data-id": e.id });
+      const cols = colourOfAny(e, S, edgeCat(e));
+      const vis = el("path", { d, class: "vis", "marker-end": "url(#arr)", stroke: cols[0] });
+      grp.appendChild(vis);
+      if (cols.length > 1) {               // two routes share this segment: alternate colours along it
+        for (let i = 1; i < cols.length; i++)
+          grp.appendChild(el("path", { d, class: "vis over", stroke: cols[i], "stroke-dasharray": `10 ${10 * (cols.length - 1)}`, "stroke-dashoffset": String(-10 * i) }));
+        vis.setAttribute("stroke-dasharray", `10 ${10 * (cols.length - 1)}`);
+      }
+      grp.appendChild(el("path", { d, class: "hit" }));
+      if (e.name && le.x !== undefined) { const t = el("text", { x: le.x, y: le.y + 3, "text-anchor": "middle" }); t.textContent = e.name; grp.appendChild(t); }
+      styleState(grp, stateOf(e, S));
+      grp.addEventListener("click", ev => { ev.stopPropagation(); select(e.id); });
+      gE.appendChild(grp);
+    }
+    for (const n of G.nodes) {
+      const ln = DG.node(n.id); if (!ln) continue;
+      const grp = el("g", { class: `n ${n.kind}`, "data-id": n.id, transform: `translate(${ln.x - ln.width / 2},${ln.y - ln.height / 2})` });
+      const cols = colourOfAny(n, S, n.category);
+      const shape = n.kind === "operator"
+        ? el("ellipse", { cx: ln.width / 2, cy: ln.height / 2, rx: ln.width / 2, ry: ln.height / 2, stroke: cols[0] })
+        : el("rect", { width: ln.width, height: ln.height, stroke: cols[0] });
+      grp.appendChild(shape);
+      if (cols.length > 1) grp.appendChild(n.kind === "operator"
+        ? el("ellipse", { cx: ln.width / 2, cy: ln.height / 2, rx: ln.width / 2 - 3, ry: ln.height / 2 - 3, stroke: cols[1], fill: "none" })
+        : el("rect", { x: 3, y: 3, width: ln.width - 6, height: ln.height - 6, rx: 4, stroke: cols[1], fill: "none" }));
+      const t = el("text", { x: ln.width / 2, y: ln.height / 2 + 4, "text-anchor": "middle" }); t.textContent = shortLabel(n); grp.appendChild(t);
+      styleState(grp, stateOf(n, S));
+      grp.addEventListener("click", ev => { ev.stopPropagation(); select(n.id); });
+      grp.addEventListener("mouseenter", () => trace(n.id));
+      grp.addEventListener("mouseleave", untrace);
+      gN.appendChild(grp);
+    }
+    if (selected) applySelection();
+    updateCount();
+  }
+  function styleState(grp, st) {
+    grp.classList.toggle("dim", st === "absent");
+    grp.classList.toggle("starved", st === "starved");
+    grp.classList.toggle("may", st === "may");
+  }
+  function updateCount() {
+    const st = G.nodes.map(n => stateOf(n, S));
+    const c = k => st.filter(x => x === k).length;
+    document.getElementById("count").textContent =
+      `${G.nodes.length - c("absent")} of ${G.nodes.length} drawn nodes could exist under these settings` +
+      `${c("starved") ? `; ${c("starved")} wired but starved` : ""}${c("may") ? `; ${c("may")} depend on the data` : ""}; ${G.edges.length} edges drawn.`;
+  }
+
+  // ---- hover trace ----------------------------------------------------------------------
+  function trace(id) {
+    const up = new Map(), down = new Map();
+    for (const e of G.edges) {
+      (down.get(e.from) || down.set(e.from, []).get(e.from)).push(e);
+      (up.get(e.to) || up.set(e.to, []).get(e.to)).push(e);
+    }
+    const keepN = new Set([id]), keepE = new Set();
+    for (const [adj, end] of [[up, "from"], [down, "to"]]) {
+      const stack = [id];
+      while (stack.length) {
+        const cur = stack.pop();
+        for (const e of adj.get(cur) || []) { keepE.add(e.id); const nxt = e[end]; if (!keepN.has(nxt)) { keepN.add(nxt); stack.push(nxt); } }
+      }
+    }
+    for (const g of vp.querySelectorAll(".n")) g.classList.toggle("hl", keepN.has(g.dataset.id));
+    for (const g of vp.querySelectorAll(".e")) g.classList.toggle("hl", keepE.has(g.dataset.id));
+  }
+  function untrace() { for (const g of vp.querySelectorAll(".hl")) g.classList.remove("hl"); }
+
+  // ---- predicate text -------------------------------------------------------------------
+  function condText(dimId, c) {
+    const d = DIMS.get(dimId), lab = d ? dimLabel(d) : dimId;
+    if (c && typeof c === "object" && !Array.isArray(c)) {
+      if ("present" in c) return `${lab} ${c.present ? "set" : "unset"}`;
+      return [("min" in c ? `${lab} ≥ ${c.min}` : ""), ("max" in c ? `${lab} ≤ ${c.max}` : "")].filter(Boolean).join(", ");
+    }
+    if (Array.isArray(c)) return `${lab} = ${c.join(" | ")}`;
+    if (d && d.kind === "boolean") return c ? lab : `no ${lab}`;
+    return `${lab} = ${c}`;
+  }
+  function predText(p) {
+    if (!p || !Object.keys(p).length) return "always";
+    const parts = Object.entries(p.params || {}).map(([d, c]) => condText(d, c));
+    if (p.any) parts.push("one of: " + p.any.map(a => `(${predText(a)})`).join(" or "));
+    if (p.not) parts.push(`not (${predText(p.not)})`);
+    if (p.data) parts.push(...p.data.map(x => x.text || x.expr));
+    return parts.join("; ");
+  }
+  const STATE_TEXT = { absent: "not in the graph under the current filters", starved: "wired, but receives nothing under the current filters",
+                       may: "may receive items, depending on the data", flows: "receives items" };
+
+  // ---- detail panel ---------------------------------------------------------------------
+  const detail = document.getElementById("detail");
+  const link = (id, text) => `<a data-go="${esc(id)}">${esc(text || id)}</a>`;
+  const prov = p => p ? `<span class="prov ${esc(p)}" title="where this came from">${esc(p)}</span>` : "";
+  const row = (k, v) => v ? `<tr><th>${k}</th><td>${v}</td></tr>` : "";
+  const contentsOf = e => e.contents || {};
+  const cardText = c => !c ? "" : [c.kind, c.per ? `per ${c.per}` : ""].filter(Boolean).join(", ");
+  function metaText(m) {
+    if (m === null) return "no meta map";
+    if (!m) return "";
+    const bits = [];
+    if (m.keys && m.keys.length) bits.push(m.keys.map(k => `<code>${esc(k)}</code>`).join(" "));
+    if (m.added && m.added.length) bits.push(`added: ${m.added.map(esc).join(", ")}`);
+    if (m.dropped && m.dropped.length) bits.push(`dropped: ${m.dropped.map(esc).join(", ")}`);
+    if (m.text) bits.push(esc(m.text));
+    return bits.join("<br>");
+  }
+  const observed = x => {
+    if (!x.observed_in && EV)
+      return x.settled === false ? `fits all ${EV.runs_ok} runs, but the matrix did not settle it` : `proven over ${EV.runs_ok} runs`;
+    if (!x.observed_in || !DATA.runs) return "";
+    const ok = DATA.runs.filter(r => r.status === "ok").length;
+    return x.observed_in.length ? `${x.observed_in.length} of ${ok}: ${x.observed_in.map(esc).join(", ")}` : `none: from the code alone`;
+  };
+  // worked examples, keyed by example set (usually a route value)
+  function exampleKey(examples, pref) {
+    const keys = Object.keys(examples || {});
+    if (!keys.length) return null;
+    if (pref && examples[pref]) return pref;
+    for (const a of S.ticked) if (examples[a]) return a;
+    return keys[0];
+  }
+  function representatives(ex, cap) {
+    const items = ex.items;
+    if (items.length <= 2) return items;
+    if (!ex.group) return items.slice(0, 2);
+    const seen = new Set(), out = [];
+    items.forEach((it, i) => { const v = ex.group.values[i]; if (!seen.has(v)) { seen.add(v); out.push(it); } });
+    return out.slice(0, cap || 4);
+  }
+  function exampleBlock(e, pref) {
+    const key = exampleKey(e.examples, pref); if (!key) return "";
+    const ex = e.examples[key], keys = Object.keys(e.examples);
+    const head = keys.length > 1
+      ? `<select class="ex-key" data-edge="${esc(e.id)}">${keys.map(r => `<option value="${esc(r)}"${r === key ? " selected" : ""}>${esc(r)}</option>`).join("")}</select>`
+      : `<span style="margin-left:auto;font-weight:400;text-transform:none;letter-spacing:0">${esc(key)}</span>`;
+    const label = ex.kind === "per_item" ? `one item each, ${ex.n} in the run` : ex.kind === "collected" ? `one item: a list of ${ex.n}` : "one item";
+    const shown = representatives(ex), rest = ex.items.length - shown.length;
+    const picked = rest > 0 && ex.group ? `, one per ${ex.group.key} shown` : "";
+    return `<div class="ex" data-edge="${esc(e.id)}"><div class="exh">Worked example<span style="font-weight:400;text-transform:none;letter-spacing:0">&nbsp;&middot; ${esc(label + picked)}</span>${head}</div>` +
+           `<pre>${esc(shown.join("\n"))}</pre>` + (rest > 0 ? `<a class="more" data-edge="${esc(e.id)}" data-key="${esc(key)}">show all ${ex.n}</a>` : "") + `</div>`;
+  }
+  function exampleInline(e) {
+    const key = exampleKey(e.examples); if (!key) return "";
+    const ex = e.examples[key], shown = representatives(ex), rest = ex.items.length - shown.length;
+    const tail = rest > 0 ? `\n<a class="more-i" data-edge="${esc(e.id)}" data-key="${esc(key)}">+${rest} more</a>` : "";
+    return `<pre class="exi"><span class="exl">e.g. </span>${esc(shown.join("\n"))}${tail}</pre>`;
+  }
+  const edgeById = id => DATA.edges.find(x => x.id === id);
+  function wireExamples() {
+    for (const sel of detail.querySelectorAll("select.ex-key")) sel.addEventListener("change", () => {
+      sel.closest(".ex").outerHTML = exampleBlock(edgeById(sel.dataset.edge), sel.value); wireExamples();
+    });
+    for (const a of detail.querySelectorAll("a.more")) a.addEventListener("click", () => {
+      a.previousElementSibling.textContent = edgeById(a.dataset.edge).examples[a.dataset.key].items.join("\n"); a.remove();
+    });
+    for (const a of detail.querySelectorAll("a.more-i")) a.addEventListener("click", () => {
+      a.parentElement.innerHTML = `<span class="exl">e.g. </span>${esc(edgeById(a.dataset.edge).examples[a.dataset.key].items.join("\n"))}`;
+    });
+  }
+  function stateBox(x, st) {
+    if (st === "starved") return `<div class="starv"><b>Wired but starved now.</b> Receives items only when ${esc(predText(x.flows_when))}.</div>`;
+    if (st === "may") return `<div class="mayb"><b>May receive items</b>, depending on the data: ${esc(predText(x.flows_when))}.</div>`;
+    if (x.flows_when && given(x.flows_when, S.dims, implied(S.dims).concat(x.when ? [x.when] : [])) === null)
+      return `<div class="mayb"><b>Could be starved</b>, depending on settings still at "any". Receives items only when ${esc(predText(x.flows_when))}.</div>`;
+    return "";
+  }
+  function select(id) {
+    selected = id; applySelection();
+    const x = byDrawnId.get(id) || nodesById.get(id) || edgeById(id);
+    if (!x) return;
+    if (x.kind === "group") showGroup(x.key);
+    else if (x.from !== undefined) showEdge(x);
+    else showNode(x);
+  }
+  function applySelection() {
+    for (const g of vp.querySelectorAll(".sel")) g.classList.remove("sel");
+    if (!selected) return;
+    const g = vp.querySelector(`[data-id="${CSS.escape(selected)}"]`); if (g) g.classList.add("sel");
+  }
+  function inOutList(list, dir) {
+    if (!list.length) return `<p class="empty">none</p>`;
+    return `<ul>${list.map(e => {
+      const other = nodesById.get(dir === "in" ? e.from : e.to) || {};
+      const c = cardText(contentsOf(e).cardinality);
+      return `<li>${link(e.id, e.name || "(unnamed)")} ${dir === "in" ? "&larr;" : "&rarr;"} ${link(other.id, other.label)}${c ? ` <span class="pill">${esc(c)}</span>` : ""}${exampleInline(e)}</li>`;
+    }).join("")}</ul>`;
+  }
+  // a process in the real run laid over the model, if there is one
+  function runText(n) {
+    const cap = DATA.generated && DATA.generated.captured;
+    if (!cap || n.kind !== "process") return "";
+    const k = (cap.tasks_per_process || {})[n.id];
+    if (k) return `${k} task${k > 1 ? "s" : ""} in <b>${esc(cap.run)}</b>`;
+    if ((cap.starved || []).includes(n.id)) return `wired in <b>${esc(cap.run)}</b>, but it received nothing: no task ran`;
+    return `not in <b>${esc(cap.run)}</b>`;
+  }
+  function showNode(n) {
+    const ins = DATA.edges.filter(e => e.to === n.id), outs = DATA.edges.filter(e => e.from === n.id);
+    const st = state(n, S.dims), grpKey = groupOf(n);
+    detail.innerHTML =
+      `<div class="kind">${esc(n.kind)}${grpKey ? ` &middot; ${esc(grpKey)}` : ""}${n.category ? ` &middot; ${esc(n.category)}` : ""}${n.lane && n.lane !== "main" ? ` &middot; lane: ${esc(n.lane)}` : ""}</div>` +
+      `<h2>${esc(n.label)}</h2>` +
+      `<table>${row("id", `<code>${esc(n.id)}</code>`)}` +
+      `${row("module", n.module && n.module !== n.source ? `<code>${esc(n.module)}</code>` : "")}${row("source", n.source ? `<code>${esc([].concat(n.source).join(", "))}</code>` : "")}` +
+      `${row("operator", n.operator && n.operator.type ? `<code>${esc(n.operator.type)}</code>` : "")}` +
+      `${row("exists when", `<span class="when">${esc(predText(n.when))}</span>${prov(n.when_from)}`)}` +
+      `${row("flows when", n.flows_when ? `<span class="when">${esc(predText(n.flows_when))}</span>${prov(n.flows_when_from)}` : "")}` +
+      `${row("now", esc(STATE_TEXT[st]))}${row("in previews", esc(observed(n)))}${row("this run", runText(n))}</table>` +
+      stateBox(n, st) + (n.notes ? `<div class="notes">${esc(n.notes)}</div>` : "") +
+      `<h3>in (${ins.length})</h3>${inOutList(ins, "in")}<h3>out (${outs.length})</h3>${inOutList(outs, "out")}`;
+    wireLinks(); wireExamples();
+  }
+  function showEdge(e) {
+    const f = nodesById.get(e.from) || byDrawnId.get(e.from) || { label: e.from }, t = nodesById.get(e.to) || byDrawnId.get(e.to) || { label: e.to };
+    if (e.members) {
+      detail.innerHTML = `<div class="kind">merged edge &middot; collapsed subworkflow</div><h2>${e.members.length} channel${e.members.length > 1 ? "s" : ""}</h2>` +
+        `<div style="font-size:12.5px;margin-top:4px">${esc(f.label)} &rarr; ${esc(t.label)}</div><ul style="margin-top:8px">` +
+        e.members.map(m => `<li>${link(m.id, m.name || "(unnamed)")}: ${esc((nodesById.get(m.from) || {}).label)} &rarr; ${esc((nodesById.get(m.to) || {}).label)}</li>`).join("") + `</ul>`;
+      wireLinks(); return;
+    }
+    const c = contentsOf(e), fr = c.from || {}, st = state(e, S.dims);
+    detail.innerHTML =
+      `<div class="kind">channel${e.lane && e.lane !== "main" ? ` &middot; lane: ${esc(e.lane)}` : ""}${e.synthetic ? " &middot; folded" : ""}</div>` +
+      `<h2>${esc(e.name || "(unnamed edge)")}</h2>` +
+      `<div style="font-size:12.5px;margin-top:4px">${link(e.from, f.label)} &rarr; ${link(e.to, t.label)}</div>` +
+      `<table>${row("shape", c.shape !== undefined ? `<code>${esc(c.shape)}</code>${prov(fr.shape)}` : (fr.shape ? `<em>not known</em>${prov(fr.shape)}` : ""))}` +
+      `${row("meta", c.meta !== undefined ? metaText(c.meta) + prov(fr.meta) : "")}` +
+      `${row("cardinality", c.cardinality ? `<span class="pill">${esc(cardText(c.cardinality))}</span>${c.cardinality.text ? " " + esc(c.cardinality.text) : ""}${prov(fr.cardinality)}` : "")}` +
+      `${row("files", c.files ? esc(c.files) + prov(fr.files) : "")}${row("port", e.port ? `<code>${esc(e.port)}</code>` : "")}${row("operator", e.operator ? `<code>${esc(e.operator)}</code>` : "")}` +
+      `${row("exists when", `<span class="when">${esc(predText(e.when))}</span>${prov(e.when_from)}`)}` +
+      `${row("flows when", e.flows_when ? `<span class="when">${esc(predText(e.flows_when))}</span>${prov(e.flows_when_from)}` : "")}` +
+      `${row("now", esc(STATE_TEXT[st]))}${row("in previews", esc(observed(e)))}${row("id", `<code>${esc(e.id)}</code>`)}</table>` +
+      stateBox(e, st) + (e.notes ? `<div class="notes">${esc(e.notes)}</div>` : "") + exampleBlock(e);
+    wireLinks(); wireExamples();
+  }
+  function showGroup(key) {
+    const g = GROUPS.get(key), meta = GROUP_META.get(key) || {};
+    const members = DATA.nodes.filter(n => groupOf(n) === key || groupOf(n).startsWith(key + ":"));
+    const collapsed = S.collapsed.has(key);
+    detail.innerHTML = `<div class="kind">subworkflow</div><h2>${esc(g.label)}</h2>` +
+      `<table>${row("path", `<code>${esc(key)}</code>`)}${row("source", meta.source ? `<code>${esc([].concat(meta.source).join(", "))}</code>` : "")}` +
+      `${row("contains", `${members.filter(n => n.kind === "process").length} processes, ${members.filter(n => n.kind === "operator").length} operators, ${members.length} nodes`)}</table>` +
+      (meta.notes ? `<div class="notes">${esc(meta.notes)}</div>` : "") +
+      `<div class="row" style="margin-top:10px"><button id="b-toggle-group">${collapsed ? "Expand" : "Collapse"} this subworkflow</button></div>` +
+      `<h3>processes</h3><ul>${members.filter(n => n.kind === "process").map(n => `<li>${link(n.id, n.label)}</li>`).join("") || "<li>none</li>"}</ul>`;
+    document.getElementById("b-toggle-group").addEventListener("click", () => {
+      const box = [...document.querySelectorAll(".f-collapse")].find(c => c.value === key);
+      if (box) { box.checked = !box.checked; render(); fit(); selected = collapsed ? null : "group:" + key; showGroup(key); applySelection(); }
+    });
+    wireLinks();
+  }
+  function selectGroup(key) { selected = "group:" + key; applySelection(); showGroup(key); }
+  function wireLinks() {
+    for (const a of detail.querySelectorAll("a[data-go]")) a.addEventListener("click", () => {
+      const id = a.dataset.go; select(id); if (nodesById.has(id)) centreOn(id);
+    });
+  }
+
+  // ---- zoom and pan ---------------------------------------------------------------------
+  let tx = 0, ty = 0, k = 1, moved = false;   // moved: has the reader zoomed or panned since the last fit?
+  const apply = () => { vp.setAttribute("transform", `translate(${tx},${ty}) scale(${k})`); svg.classList.toggle("far", k < 0.4); };
+  svg.addEventListener("wheel", ev => {
+    ev.preventDefault();
+    const r = svg.getBoundingClientRect(), mx = ev.clientX - r.left, my = ev.clientY - r.top;
+    const f = ev.deltaY < 0 ? 1.15 : 1 / 1.15, nk = Math.max(.05, Math.min(6, k * f));
+    tx = mx - (mx - tx) * (nk / k); ty = my - (my - ty) * (nk / k); k = nk; moved = true; apply();
+  }, { passive: false });
+  let drag = null;
+  svg.addEventListener("mousedown", ev => { if (ev.button !== 0) return; drag = { x: ev.clientX - tx, y: ev.clientY - ty }; });
+  window.addEventListener("mousemove", ev => { if (!drag) return; tx = ev.clientX - drag.x; ty = ev.clientY - drag.y; moved = true; apply(); });
+  window.addEventListener("mouseup", () => { drag = null; });
+  svg.addEventListener("click", () => { selected = null; applySelection(); detail.innerHTML = `<p class="empty">Click a process, operator, channel or edge.</p>`; });
+  function fit() {
+    const g = DG.graph(), r = svg.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    k = Math.max(0.05, Math.min((r.width - 40) / g.width, (r.height - 40) / g.height, 1.4));
+    tx = (r.width - g.width * k) / 2; ty = (r.height - g.height * k) / 2; moved = false; apply();
+  }
+  function centreOn(id) {
+    const ln = DG.node(id); if (!ln) return;
+    const r = svg.getBoundingClientRect();
+    tx = r.width / 2 - ln.x * k; ty = r.height / 2 - ln.y * k; moved = true; apply();
+  }
+  document.getElementById("b-fit").addEventListener("click", fit);
+  document.getElementById("b-in").addEventListener("click", () => { k = Math.min(6, k * 1.25); moved = true; apply(); });
+  document.getElementById("b-out").addEventListener("click", () => { k = Math.max(.05, k / 1.25); moved = true; apply(); });
+
+  // ---- wiring ------------------------------------------------------------------------------
+  // In grey mode a filter change restyles in place, so the map stays stable;
+  // lanes, groups and hide mode change what is drawn and need a new layout.
+  // Repaint in place: a filter change never re-lays out the graph (on
+  // nf-core/rnaseq's ~1,000 nodes a layout takes seconds). A node with two
+  // route colours gets an inner ring, an edge alternating dashes; both are
+  // added or removed here as the colour count changes.
+  function paintNode(g, cols) {
+    const shapes = g.querySelectorAll("rect, ellipse"), outer = shapes[0];
+    outer.style.stroke = cols[0];
+    if (cols.length > 1 && !shapes[1]) {
+      const inner = outer.tagName === "ellipse"
+        ? el("ellipse", { cx: outer.getAttribute("cx"), cy: outer.getAttribute("cy"), rx: +outer.getAttribute("rx") - 3, ry: +outer.getAttribute("ry") - 3, fill: "none" })
+        : el("rect", { x: 3, y: 3, width: +outer.getAttribute("width") - 6, height: +outer.getAttribute("height") - 6, rx: 4, fill: "none" });
+      outer.after(inner);
+    } else if (cols.length < 2 && shapes[1]) {
+      shapes[1].remove();
+    }
+    const inner = g.querySelectorAll("rect, ellipse")[1];
+    if (inner) inner.style.stroke = cols[1];
+  }
+  function paintEdge(g, cols) {
+    const vis = [...g.querySelectorAll("path.vis")];
+    if (vis.length !== cols.length) {
+      const d = vis[0].getAttribute("d");
+      for (const p of vis.slice(1)) p.remove();
+      vis[0].removeAttribute("stroke-dasharray");
+      for (let i = 1; i < cols.length; i++)
+        vis[0].after(el("path", { d, class: "vis over", "stroke-dasharray": `10 ${10 * (cols.length - 1)}`, "stroke-dashoffset": String(-10 * i) }));
+      if (cols.length > 1) vis[0].setAttribute("stroke-dasharray", `10 ${10 * (cols.length - 1)}`);
+    }
+    g.querySelectorAll("path.vis").forEach((p, i) => { p.style.stroke = cols[i]; });
+  }
+  function restyle() {
+    S = settings();
+    for (const g of vp.querySelectorAll(".n")) {
+      const n = byDrawnId.get(g.dataset.id); if (!n) continue;
+      styleState(g, stateOf(n, S));
+      paintNode(g, colourOfAny(n, S, n.category));
+    }
+    for (const g of vp.querySelectorAll(".e")) {
+      const e = byDrawnId.get(g.dataset.id); if (!e) continue;
+      styleState(g, stateOf(e, S));
+      paintEdge(g, colourOfAny(e, S, edgeCat(e)));
+    }
+    if (selected) select(selected);
+    updateCount();
+  }
+  for (const c of document.querySelectorAll("aside.filters select, aside.filters input")) {
+    c.addEventListener("change", () => {
+      markSet();
+      const relayout = c.classList.contains("f-lane") || c.classList.contains("f-collapse") || c.id === "g-boxes" || c.id === "f-mode" || settings().mode === "hide";
+      if (relayout) { render(); fit(); } else restyle();
+    });
+  }
+  document.getElementById("b-reset").addEventListener("click", () => {
+    for (const c of document.querySelectorAll(".f-dim")) c.value = "";
+    for (const c of document.querySelectorAll(".f-route")) c.checked = false;
+    markSet(); render(); fit();
+  });
+  // ---- a real run laid over the model (tools/harvest.py) --------------------
+  const CAP = DATA.generated && DATA.generated.captured;
+  if (CAP) {
+    const short = id => id.split(":").pop();
+    const ck = CAP.check || {}, gr = ck.graph;
+    const diffs = [...(ck.ran_not_expected || []).map(p => `${short(p)} ran, not expected`),
+                   ...(ck.expected_not_wired || []).map(p => `${short(p)} expected, not in the run`),
+                   ...(ck.wired_not_expected || []).map(p => `${short(p)} in the run, not expected`)];
+    const nDiff = (gr ? gr.unexpected.length + gr.missing.length : 0) || diffs.length;
+    const held = new Map((ck.held_args_changed || []).map(c => [c.param, c]));
+    const explained = (ck.explained || []).map(x => {
+      const why = x.params.map(p => { const c = held.get(p); return `<code>--${esc(p)}</code>${c ? ` (${esc(c.held)} in every preview, ${esc(c.run)} here)` : ""}`; }).join(", ");
+      return `${x.elements.length} by ${why}`;
+    });
+    const unexplained = (ck.unexplained || []).length;
+    const box = document.createElement("div"); box.className = "grp";
+    box.innerHTML = `<div class="k">This run</div>` +
+      `<p class="note"><b>${esc(CAP.run)}</b>${CAP.release ? ` &middot; ${esc(CAP.release)}` : ""}: ${CAP.tasks} tasks in ${CAP.processes} processes. ` +
+      `Channels it used show its meta keys and items.</p>` +
+      (nDiff
+        ? `<p class="note">Differs from the model${diffs.length ? ` (${diffs.map(esc).join("; ")})` : ""} at ${nDiff} nodes and channels. ` +
+          (explained.length ? `Explained: ${explained.join("; ")}: the model's previews held that arg, so it is exact only with it as they had it. ` : "") +
+          (unexplained ? `<b>${unexplained} not explained</b>: the model may be stale or wrong for this run.` : "") + `</p>`
+        : `<p class="note">Matches the model under its settings.</p>`) +
+      ((CAP.starved || []).length ? `<p class="note">Wired but received nothing in this run: ${CAP.starved.map(p => link(p, short(p))).join(", ")}.</p>` : "") +
+      `<div class="row"><button id="b-run">Show this run's settings</button></div>`;
+    document.getElementById("dims").prepend(box);
+    for (const a of box.querySelectorAll("a[data-go]")) a.addEventListener("click", () => { select(a.dataset.go); centreOn(a.dataset.go); });
+    document.getElementById("b-run").addEventListener("click", () => {
+      const s = CAP.settings || {};
+      for (const c of document.querySelectorAll(".f-dim")) {
+        const v = s[c.dataset.dim];
+        c.value = v === undefined || v === null ? "" : String(v);
+        if (c.value !== String(v)) c.value = "";
+      }
+      for (const c of document.querySelectorAll(".f-route")) c.checked = s[ROUTE_DIM] === c.value;
+      markSet(); render(); fit();
+    });
+  }
+  render();
+  // The grid may not have sized the SVG yet, and a background tab gets no
+  // animation frames: fit whenever the SVG gets or changes size, until the
+  // reader zooms or pans (Fit resets that).
+  fit();
+  new ResizeObserver(() => { if (!moved) fit(); }).observe(svg);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !moved) fit(); });
+  // For tests: the parity check and the browser checks read these.
+  window.PF = { DATA, holds, given, state, settings, drawn: () => G, colourOf: colourOfAny, stateOf };
+})();
+</script>
+</body>
+</html>
