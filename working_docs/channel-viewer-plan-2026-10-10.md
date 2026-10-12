@@ -1,6 +1,8 @@
 # A standalone channel viewer for any Nextflow pipeline: rationale and process
 
-*2026-10-10. Exploration and outline only. Nothing built, no code written.
+*Started 2026-10-10 as an exploration and outline; kept since as the plan
+and findings. Status 2026-10-12: version 0.1.0 published at
+https://github.com/nicholas-owen/process-flow (see "Next steps" at the end).
 Follows on from
 `rnaseq-flow/working_docs/channel-viewer-standalone-2026-10-09.md` (the design
 note) and `rnaseq-flow/working_docs/channel-schematic-rationale-2026-09-14.md`
@@ -1257,3 +1259,94 @@ call was not found); and a port could take only one edge.
 Phases 0 and 1 are low-risk refactoring of code that already works. The real
 research is the fingerprint problem at the start of Phase 2, so test it
 against the existing DOT files before committing to the rest.
+
+## Next steps (2026-10-12)
+
+**State:** process-flow 0.1.0 is published at
+https://github.com/nicholas-owen/process-flow. The first commit, `ff7437b`,
+holds 57 files on `main`.
+
+- **The Explorer** (`process-flow run` / `explore`) works end to end on
+  nf-core/rnaseq 3.27.0 and nf-core/sarek 3.10.0.
+- **The Analyser** has published models for nf-core/rnaseq 3.27.0 and
+  nf-core/fetchngs 1.13.0.
+- **Documentation:** a README, `docs/guide.md`, the generated Word user
+  guide, and `examples/`.
+
+### Repository housekeeping (optional, small)
+
+- [ ] **Commit the `CITATION.cff` fix.** The "not yet created" comment was
+  removed after the push, and the change is local only: `git commit -am
+  "CITATION.cff: the repository now exists" && git push`.
+- [ ] **GitHub "About" box:** a description (e.g. "See what a Nextflow
+  pipeline's channels carry: one command, one page") and topics
+  (`nextflow`, `nf-core`, `bioinformatics`, `visualisation`). Set on the
+  repository page.
+- [ ] **A `v0.1.0` release** on GitHub, tagging `ff7437b` (or the commit
+  after the `CITATION.cff` fix), with `process-flow_User_Guide.docx`
+  attached so the guide can be downloaded without cloning. The changelog's
+  0.1.0 entry is the release notes.
+- [ ] **A Zenodo DOI:** connect the repository to Zenodo before making the
+  release, so the release is archived and given a DOI, as rnaseq-flow's
+  offline bundle was. Then add the DOI to `CITATION.cff` and the README.
+- [ ] **ORCID:** uncomment the `orcid:` line in `CITATION.cff` and fill it
+  in.
+- [ ] **CI (later):** a GitHub Actions job that runs the tests that need no
+  network or pipeline sources (`test_infer_synthetic.py`, the
+  `js_parity.py` vectors, a `viewer/build.py` of the example models against
+  the schema). It would also rebuild the Word guide to check it still
+  builds. The source-reading tests (`test_conditions.py`) need the pulled
+  nf-core sources, which are kept out of the repository; they would have to
+  fetch them by commit first.
+
+### Work (options, in the order suggested)
+
+1. **A third pipeline,** e.g. nf-core/atacseq (close to nf-core/rnaseq in
+   structure, so a check that the fixes generalise) or nf-core/taxprofiler
+   (many on/off profilers, so a different shape of routing). Each one is a
+   `nextflow config` check, one `process-flow run`, then the bundle and the
+   source copied across for analysis, as with sarek. Whatever turns up is
+   new code-reading patterns, fixed and scored as before.
+2. **A Nextflow plugin.** Users would add a flag to a normal `nextflow run`
+   instead of using the wrapper. The plugin would switch lineage on, write
+   the DAG, and build the page on completion. It is the step that makes
+   process-flow easy to hand to others, and best after option 1 has shaken
+   out more problems.
+3. **Move rnaseq-flow onto the new viewer.** This is the step held back on
+   2026-10-10 ("do not change rnaseq-flow channels until the viewer is
+   complete"). It means replacing `working_docs/channel-schematic/` with a
+   `process-flow run` of rnaseq-flow, perhaps publishing an Analyser model
+   for it, and pointing rnaseq-flow's docs at the page. It needs the
+   go-ahead to change rnaseq-flow.
+4. **An Analyser model for nf-core/sarek.** Its `--tools` list makes it the
+   largest matrix yet: 28 switches. The planner would need to cap it, or
+   take the tools in groups. Its published model would also be the first
+   to cover data-routed aligners honestly.
+
+### Known open issues
+
+- **Operators matched to a look-alike statement.** These account for most
+  of the remaining wrong answers in conditions read from code
+  (nf-core/rnaseq 281 of 2,289, sarek 58 contradicted). The cause is the
+  union graph merging alike operators made in different places, so a node
+  does not map to one statement. That cannot be fixed from the source side.
+  A recorded DAG with source positions (a Nextflow feature request, or the
+  plugin) would remove it.
+- **Items between two operators.** Lineage records process boundaries
+  only, so the page shows which files passed between operators but not the
+  tuples. A plugin could observe operators directly.
+- **Params the matrix held but did not fix.** A published model cannot
+  check a run against these (`params_not_varied`), because their held
+  values are not recorded. The fix is to record the test profile's values
+  in `publish.py`.
+- **Helper functions** (nf-core/rnaseq's `defineQcTools`) and other
+  statements that mutate state are read as unknown: 7 RSeQC processes. A
+  small statement interpreter for such functions would decide them.
+- **The rnaseq-flow fixture** cannot be scored for conditions read from
+  code. Four of its dimensions are derived values (`workflow`, `entry`,
+  `input`, `strandedness`) with no single param behind them.
+- **nf-core/methylseq 4.2.0** does not parse on Nextflow 26 (it ships no
+  `conf/aws/batch/nextflow.config`). Worth reporting to nf-core, and
+  retrying with a later release.
+- **The viewer** needs a few seconds to lay out about 1,000 nodes on first
+  load. Filtering after that is immediate.

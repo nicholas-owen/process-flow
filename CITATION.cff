@@ -14,7 +14,6 @@ authors:
   - family-names: Owen
     given-names: Nicholas
     # orcid: "https://orcid.org/0000-0000-0000-0000"
-# not yet created: the repository this is planned for
 repository-code: "https://github.com/nicholas-owen/process-flow"
 url: "https://github.com/nicholas-owen/process-flow"
 license: GPL-3.0-or-later
