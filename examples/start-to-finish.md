@@ -11,7 +11,7 @@ This walks through process-flow start to finish, twice, on real pipelines:
 
 You end with `channels.html`: one file showing every process and channel of
 the pipeline, and what your run carried through each. If you only want to see
-a page first, open one in [examples/](../examples/README.md); nothing needs
+a page first, open one in [the other pages here](README.md); nothing needs
 installing for that.
 
 Times and numbers below are from real runs on a laptop with 15 GB of memory
@@ -326,5 +326,5 @@ More in the user guide, section 8.
   than read from the code, use a model the pipeline's authors published, or
   make one: `docs/guide.md` walks through the **Analyser**.
 - To add a pipeline's authors' model to your page, pass it with
-  `process-flow explore --model FILE`; [examples/published/](../examples/published/)
+  `process-flow explore --model FILE`; [published/](published/)
   has two.

@@ -4,6 +4,10 @@ Pages and models made with process-flow, so you can see what it produces
 before running anything. Each page is one self-contained HTML file: download
 it and open it in a browser.
 
+**Want to run one yourself?** [start-to-finish.md](start-to-finish.md) goes from an
+empty machine to a page like these: setting up, getting a pipeline from GitHub,
+two worked runs, sharing the result.
+
 ## Pages
 
 | Page | Made from | What to try |

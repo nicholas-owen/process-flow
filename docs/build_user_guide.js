@@ -204,7 +204,7 @@ children.push(P([BOLD("Find out what the pipeline needs. "), PLAIN("nf-core pipe
 
 // 3. Quick start
 children.push(H1("3. Start to finish"));
-children.push(P("Two worked examples, both real runs: nf-core/rnaseq, which Nextflow downloads for you, and a pipeline you download from GitHub yourself and run from a folder. docs/example.md in the repository has the same walkthrough with more detail, starting from an empty machine."));
+children.push(P("Two worked examples, both real runs: nf-core/rnaseq, which Nextflow downloads for you, and a pipeline you download from GitHub yourself and run from a folder. examples/start-to-finish.md in the repository has the same walkthrough with more detail, starting from an empty machine."));
 children.push(H2("3.1 Example A: nf-core/rnaseq"));
 children.push(P("Make a folder for the run, and run the pipeline's test through process-flow. Everything after run goes to nextflow run unchanged:"));
 children.push(...codeBlock([
@@ -452,7 +452,7 @@ children.push(P("This guide is generated from the process-flow repository and tr
 children.push(table([3200, 6160], [
   ["Document", "What it adds"],
   ["README.md", "Overview, quick start and the repository layout"],
-  ["docs/example.md", "The start-to-finish walkthrough: setting up from an empty machine, getting a pipeline from GitHub, the two worked runs in section 3 with more detail, reading the page, sharing it"],
+  ["examples/start-to-finish.md", "The start-to-finish walkthrough: setting up from an empty machine, getting a pipeline from GitHub, the two worked runs in section 3 with more detail, reading the page, sharing it"],
   ["docs/guide.md", "The long-form version of sections 3, 4 and 7, with the Analyser walkthrough on nf-core/fetchngs and what nf-core/rnaseq needed on top"],
   ["examples/", "Pages to open without running anything (nf-core/rnaseq and nf-core/sarek test runs, nf-core/fetchngs), and the two published models"],
   ["schema/README.md", "The channel model: every field, and why it is shaped as it is"],

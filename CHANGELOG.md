@@ -19,7 +19,7 @@
   10-process scRNA-seq pipeline written this way, every process-boundary
   edge now has its port, shape and the run's items (43 of 43, from 40), and
   the end points carry the emit that is actually published.
-- `docs/example.md`: start to finish from an empty machine: setting up,
+- `examples/start-to-finish.md`: start to finish from an empty machine: setting up,
   three ways to get a pipeline from GitHub (Nextflow pulls it, a clone, a
   ZIP), and two worked runs (nf-core/rnaseq; a downloaded pipeline in the
   strict syntax), with what to look at in the page, sharing it, and what

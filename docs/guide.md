@@ -1,6 +1,6 @@
 # Using process-flow on a Nextflow pipeline
 
-New to it? [example.md](example.md) is the start-to-finish walkthrough: set
+New to it? [start-to-finish.md](../examples/start-to-finish.md) is the start-to-finish walkthrough: set
 up, get a pipeline from GitHub, run it, read the page, share it. This guide is
 the reference behind it, and the Analyser walkthrough for pipeline authors.
 

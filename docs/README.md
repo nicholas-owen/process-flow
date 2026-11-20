@@ -2,7 +2,6 @@
 
 | File | What |
 |---|---|
-| `example.md` | Start to finish on real pipelines: set up, get a pipeline from GitHub, run it, read the page, share it |
 | `guide.md` | The long-form guide: the one command, and the Analyser walkthrough for pipeline authors |
 | `build_user_guide.js` | Generates `../process-flow_User_Guide.docx`, the Word user guide |
 

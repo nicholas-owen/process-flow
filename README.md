@@ -31,7 +31,7 @@ the run fails, fix it and rerun with `-resume`: cached tasks still count.
 For a run already made with `lineage.enabled = true`, `process-flow explore`
 builds the page from it.
 
-**Starting from nothing?** [docs/example.md](docs/example.md) goes from an
+**Starting from nothing?** [examples/start-to-finish.md](examples/start-to-finish.md) goes from an
 empty machine to a shareable page: setting up Nextflow, Docker and
 process-flow on WSL2 or Linux, three ways to get a pipeline from GitHub
 (let Nextflow download it, clone it, or download the ZIP), and two worked runs
@@ -46,7 +46,7 @@ nf-core/sarek.
 | Document | For |
 |---|---|
 | [process-flow_User_Guide.docx](process-flow_User_Guide.docx) | The whole guide as a formatted Word document, for printing or circulating offline: installing, the one command, reading the page, where conditions come from, the Analyser, troubleshooting |
-| [docs/example.md](docs/example.md) | Start to finish on real pipelines: set up, get a pipeline from GitHub, run it, read the page, share it |
+| [examples/start-to-finish.md](examples/start-to-finish.md) | Start to finish on real pipelines: set up, get a pipeline from GitHub, run it, read the page, share it |
 | [docs/guide.md](docs/guide.md) | The same in long form, with the Analyser walkthrough step by step |
 | [examples/](examples/README.md) | Pages and published models to open without running anything |
 | [schema/README.md](schema/README.md) | The channel model, field by field |
