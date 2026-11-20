@@ -177,10 +177,35 @@ children.push(...codeBlock([
   "git clone https://github.com/nicholas-owen/process-flow.git",
   "process-flow/bin/process-flow --help",
 ]));
-children.push(P("To call it as process-flow from anywhere, put the bin folder on your PATH, or run it as bash /path/to/process-flow/bin/process-flow. The pipeline itself needs no change, and is never modified."));
+children.push(P("To call it as process-flow from anywhere, put the bin folder on your PATH, or run it as bash /path/to/process-flow/bin/process-flow. The pipeline itself needs no change, and is never modified. To update later, run git pull in the repository."));
+children.push(note("Keep run folders on the Linux filesystem (your home folder in WSL), not under /mnt/c or a synced drive. Nextflow writes a great many small files and is many times slower on a mounted Windows drive."));
+
+children.push(H2("2.1 Getting a pipeline from GitHub"));
+children.push(P("Any GitHub repository is a Nextflow project. There are three ways to get one. Use the first unless you need to read or edit the code."));
+children.push(table([1900, 4300, 3160], [
+  ["Way", "How", "When"],
+  ["Let Nextflow download it", "nextflow run owner/repo -r TAG ... Nextflow keeps a copy under ~/.nextflow/assets, and process-flow finds it there", "The usual case. Always pin a release with -r, so the run can be repeated"],
+  ["Clone it", "git clone --depth 1 --branch TAG https://github.com/owner/repo.git ~/pipelines/repo, then run ~/pipelines/repo/main.nf", "To read or edit the pipeline, or to run an unreleased branch"],
+  ["Download the ZIP", "On the repository page choose Code, then Download ZIP. In WSL: unzip /mnt/c/Users/<you>/Downloads/repo-main.zip -d ~/pipelines, then run ~/pipelines/repo-main/main.nf", "No git needed. GitHub names the folder repo-main (or -master). Zone.Identifier files beside a copied ZIP are harmless"],
+]));
+children.push(spacer());
+children.push(P([BOLD("Newest releases first. "), PLAIN("To list a repository's releases, newest last:")]));
+children.push(...codeBlock([
+  "git ls-remote --tags https://github.com/nf-core/rnaseq | grep -v '\\^{}' \\",
+  "    | sed 's#.*refs/tags/##' | grep -E '^[0-9]+\\.[0-9]+\\.[0-9]+$' | sort -V | tail -5",
+]));
+children.push(P([BOLD("Check the config before you run. "), PLAIN("It takes seconds, and some releases do not parse on a current Nextflow. For a pipeline Nextflow downloads, name the release; for one in a folder, run it from inside the folder and leave -r out. -r tells Nextflow the argument is a remote project, and it answers Not a valid project name:")]));
+children.push(...codeBlock([
+  "nextflow config nf-core/rnaseq -r 3.27.0 -profile test,docker | tail -5",
+  "",
+  "cd ~/pipelines/repo-main && nextflow config . -profile docker | tail -5",
+]));
+children.push(P([BOLD("Find out what the pipeline needs. "), PLAIN("nf-core pipelines take --input, --outdir and references, and have a test profile with small data of their own. Others list their parameters in the README, in nextflow_schema.json, or in the params { } block at the top of main.nf, and may ship example parameter files (look for a params/ folder).")]));
 
 // 3. Quick start
-children.push(H1("3. Quick start"));
+children.push(H1("3. Start to finish"));
+children.push(P("Two worked examples, both real runs: nf-core/rnaseq, which Nextflow downloads for you, and a pipeline you download from GitHub yourself and run from a folder. docs/example.md in the repository has the same walkthrough with more detail, starting from an empty machine."));
+children.push(H2("3.1 Example A: nf-core/rnaseq"));
 children.push(P("Make a folder for the run, and run the pipeline's test through process-flow. Everything after run goes to nextflow run unchanged:"));
 children.push(...codeBlock([
   "mkdir -p ~/runs/rnaseq && cd ~/runs/rnaseq",
@@ -196,7 +221,44 @@ children.push(...codeBlock([
   "echo 'process.resourceLimits = [cpus: 4, memory: 12.GB, time: 6.h]' > limits.config",
   `${PF}/bin/process-flow run nf-core/rnaseq -r 3.27.0 -profile test,docker --outdir results -c limits.config`,
 ]));
+children.push(note("Which output folder? Most pipelines take --outdir. Pipelines that use Nextflow's output { } block (strict syntax, Nextflow 25.10 and later) refuse a --outdir they do not declare, and take -output-dir instead. process-flow accepts either; with neither, it uses the output folder Nextflow reports for the run and keeps the DAG in .process-flow/dag.dot in the launch folder."));
 children.push(note("If the run fails, process-flow builds nothing. Fix the cause and rerun the same command with -resume: tasks that already finished are taken from Nextflow's cache, and process-flow counts them."));
+children.push(P("The first run pulls several gigabytes of container images; the pipeline itself took about 10 minutes (234 tasks). When it ends, process-flow reports what it built:"));
+children.push(...codeBlock([
+  "process-flow: run serene_aryabhata: nf-core/rnaseq 3.27.0 (a1fcdddd3b), 234 tasks",
+  "process-flow: no published model: building one from the run's DAG and the code",
+  "process-flow: conditions: 1353 read, 213 read, some settings undecided, 43 contradicted by the run",
+  "serene_aryabhata: 234 tasks in 65 processes; 140 input ports and 175 emits harvested; ...",
+  "  processes: 67 expected under the run's settings, 65 ran, 67 wired",
+  "  wired but no task ran (2): PRESEQ_LCEXTRAP, SAMTOOLS_INDEX",
+  "process-flow: wrote results/pipeline_info/channels.html",
+]));
+children.push(P("No model was published by the pipeline's authors, so each condition was read from the code. A few could not be fully decided, and 43 elements exist in the run although the code's conditions said they should not; those show as unknown rather than wrong. Two processes were wired into the run but received no data."));
+
+children.push(H2("3.2 Example B: a pipeline you downloaded"));
+children.push(P("A small single-cell RNA-seq pipeline (10 processes: import, QC, filter, normalise, highly variable genes, PCA, UMAP, clustering and plots), github.com/kevinrue/biofair-nextflow-pipeline, downloaded as a ZIP and unpacked to ~/pipelines/biofair-nextflow-pipeline-main. It has no nextflow_schema.json, a typed params { } block and an output { } block, and ships example parameter files in params/. Run it from a separate folder, so its work and results stay out of the pipeline's own:"));
+children.push(...codeBlock([
+  "cd ~/pipelines/biofair-nextflow-pipeline-main && nextflow config . -profile docker | tail -5",
+  "",
+  "mkdir -p ~/runs/biofair && cd ~/runs/biofair",
+  "PIPE=~/pipelines/biofair-nextflow-pipeline-main",
+  `${PF}/bin/process-flow run $PIPE/main.nf -profile docker \\`,
+  "    -params-file $PIPE/params/hdf5.yml \\",
+  "    --metadata_filters $PIPE/data/metadata-filters.json \\",
+  "    -output-dir results",
+]));
+children.push(P("Three things in that command each failed before it worked:"));
+children.push(bullet([BOLD("-output-dir, not --outdir. "), PLAIN("A strict-syntax pipeline rejects a parameter it does not declare, and this one declares no outdir. With --outdir it stops at launch with Parameter 'outdir' was specified but is not declared. Where its results go is set with Nextflow's -output-dir; process-flow accepts either.")]));
+children.push(bullet([BOLD("--metadata_filters with a full path. "), PLAIN("The example parameter file gives a relative path, which Nextflow resolves from the folder you launch in, not from the pipeline's. A command-line value overrides the parameter file.")]));
+children.push(bullet([BOLD("The path to main.nf, and no -r. "), PLAIN("-r is for remote projects.")]));
+children.push(P("The run took about 6 minutes (10 tasks). The page has no filters, because there is no schema to list parameters from, but it shows the whole graph and what each channel carried: the meta map, the [meta, infile, metadata_filters] tuple after the map, and the real items, such as [[id:test_sample], [outfile.h5ad]]. All 43 process-boundary channels have their port, shape and the run's items."));
+
+children.push(H2("3.3 What to look at, and sharing it"));
+children.push(bullet([BOLD("Press Show this run's settings "), PLAIN("in the This run box. Every filter is set to what your run used.")]));
+children.push(bullet([BOLD("Click a channel "), PLAIN("going into a process you care about: the panel shows its tuple, meta keys, whether it is a queue or a value, and the run's real items.")]));
+children.push(bullet([BOLD("Click a process "), PLAIN("and read the this run row: how many tasks it ran, or that it was wired but received nothing.")]));
+children.push(P([BOLD("Sharing. "), PLAIN("channels.html is one self-contained file: the layout library, the logo and the data are inside it, nothing loads from the internet, and it holds no local paths. Send just that file, zipped if a mail client blocks .html. It does contain what flowed through your channels (sample IDs, meta values, file names, up to six example items per channel), so for a run on real or sensitive samples, open it first and treat it like a results table.")]));
+children.push(P([BOLD("Tidying up. "), PLAIN("Once the page is built, the work folder (often gigabytes) can be deleted; that only stops -resume. Keep .lineage if you may want to rebuild the page with process-flow explore.")]));
 
 // 4. How a run becomes a page
 children.push(H1("4. How a run becomes a page"));
@@ -206,7 +268,7 @@ children.push(...codeBlock([
   "lineage.enabled = true",
   "dag { enabled = true; overwrite = true; file = '<outdir>/pipeline_info/process-flow/dag.dot' }",
 ]));
-children.push(P("Data lineage makes Nextflow record every task in .lineage in the launch folder: each input and output as it was, meta maps included, and for each file the task that made it. The DAG is the graph of the run. When Nextflow exits successfully, run goes on to explore."));
+children.push(P("Data lineage makes Nextflow record every task in .lineage in the launch folder: each input and output as it was, meta maps included, and for each file the task that made it. The DAG is the graph of the run, written to <outdir>/pipeline_info/process-flow/dag.dot, or to .process-flow/dag.dot when no output folder was named. When Nextflow exits successfully, run goes on to explore."));
 children.push(H2("4.2 process-flow explore"));
 children.push(P("explore builds the page from a run already made. It reads the latest run in .lineage (and the tasks a -resume took from the cache), and from that run's record: where Nextflow put the pipeline's source, the output folder, the commit, and the params. nf-core pipelines also write the params as they used them, after filling genome attributes in, to pipeline_info/params_*.json; explore reads those when they are there. Then:"));
 children.push(bullet([BOLD("The model. "), PLAIN("If the pipeline ships a published model for its release (assets/process-flow/channels.json), explore uses it. Otherwise it builds one from the run's DAG: modules, ports and declared tuple shapes from the module files, and each element's condition read from the code (section 6).")]));
@@ -361,7 +423,10 @@ children.push(H1("8. Troubleshooting"));
 children.push(table([3600, 5760], [
   ["Symptom", "Likely cause / fix"],
   ["Config parsing failed, Invalid include source, before anything runs", "The release's own config is broken (nf-core/methylseq 4.2.0 includes a file it does not ship). Not process-flow: try another release, or NXF_SYNTAX_PARSER=v1 in front of the command. nextflow config catches this in seconds"],
+  ["Parameter 'outdir' was specified on the command line or params file but is not declared", "The pipeline uses Nextflow's typed params and output { } block, which reject an undeclared --outdir. Use -output-dir results in its place (section 3). The run fails at launch, so lineage is empty and explore says there is no workflow run"],
+  ["Not a valid project name: /path/to/folder", "-r was given with a local path, or the path is wrong. Leave -r out, and check the folder with ls: a ZIP often unpacks to a folder inside a folder (section 2.1)"],
   ["A task is killed for memory, or Nextflow says it cannot satisfy a request", "Cap resources in a config passed with -c (section 3)"],
+  ["has no workflow run: the run most likely failed before any task started", "explore prints the last error from .nextflow.log. Fix that and rerun"],
   ["no lineage store at .../.lineage", "The run was made without lineage. Use process-flow run, or add lineage.enabled = true to a config"],
   ["no DAG at ...", "Give the run's DAG with --dag, or rerun with process-flow run, which writes it"],
   ["the pipeline's source is not at ...", "The run's pulled source is gone (another machine, a cleaned cache). Give a checkout of the same release with --source"],
@@ -387,6 +452,7 @@ children.push(P("This guide is generated from the process-flow repository and tr
 children.push(table([3200, 6160], [
   ["Document", "What it adds"],
   ["README.md", "Overview, quick start and the repository layout"],
+  ["docs/example.md", "The start-to-finish walkthrough: setting up from an empty machine, getting a pipeline from GitHub, the two worked runs in section 3 with more detail, reading the page, sharing it"],
   ["docs/guide.md", "The long-form version of sections 3, 4 and 7, with the Analyser walkthrough on nf-core/fetchngs and what nf-core/rnaseq needed on top"],
   ["examples/", "Pages to open without running anything (nf-core/rnaseq and nf-core/sarek test runs, nf-core/fetchngs), and the two published models"],
   ["schema/README.md", "The channel model: every field, and why it is shaped as it is"],

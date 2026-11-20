@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+- `process-flow run` no longer requires `--outdir`: it accepts `-output-dir`
+  too, for pipelines using Nextflow's `output { }` block (strict syntax),
+  which reject a `--outdir` they do not declare; with neither, the output
+  folder Nextflow reports for the run is used and the DAG is kept in
+  `.process-flow/dag.dot`.
+- `explore` on a run that failed before any task started now prints the
+  error from `.nextflow.log` rather than only "no workflow run".
+- A pipeline with no `nextflow_schema.json` is handled: its page has no
+  filters, and shows the run's graph and what each channel carried.
+- Nextflow's newer strict syntax is read: a process's emits used through the
+  call's result (`def qc = RNA_QC(...)`, then `qc.outfile`) as well as
+  `RNA_QC.out.outfile`; a `publish:` section does not count as a use, so an
+  emit that is only published is a bare end point; processes called in the
+  unnamed entry workflow have their call and emits read from it. On a
+  10-process scRNA-seq pipeline written this way, every process-boundary
+  edge now has its port, shape and the run's items (43 of 43, from 40), and
+  the end points carry the emit that is actually published.
+- `docs/example.md`: start to finish from an empty machine: setting up,
+  three ways to get a pipeline from GitHub (Nextflow pulls it, a clone, a
+  ZIP), and two worked runs (nf-core/rnaseq; a downloaded pipeline in the
+  strict syntax), with what to look at in the page, sharing it, and what
+  goes wrong. The Word guide's section 3 has the same steps.
+- A local pipeline is named for its folder (without the `-main` a GitHub
+  download adds), not `main.nf`.
+
 ## 0.1.0 (2026-10-12)
 
 First release.

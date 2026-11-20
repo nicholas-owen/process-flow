@@ -1260,6 +1260,30 @@ Phases 0 and 1 are low-risk refactoring of code that already works. The real
 research is the fingerprint problem at the start of Phase 2, so test it
 against the existing DOT files before committing to the rest.
 
+**A pipeline outside nf-core, 2026-11-20** (a 10-process Bioconductor
+scRNA-seq pipeline from BiocJobs, written in Nextflow's strict syntax: typed
+`params { }`, `publish:` and `output { }`, no `nextflow_schema.json`). It
+ran end to end through `process-flow run`, after three fixes:
+
+- **`--outdir` is rejected.** Nextflow's strict params refuse a param the
+  script does not declare, and these pipelines use `-output-dir`. The first
+  attempt failed at launch, leaving an empty lineage. `run` now accepts
+  either, `explore` says why a run is empty, and the DAG can wait in
+  `.process-flow/`.
+- **No schema:** a model with no dimensions builds and validates; the page
+  has no filters but still shows the graph and the run's contents.
+- **New-syntax emits:** `def qc = RNA_QC(...)` then `qc.outfile` was not read,
+  and processes called in the unnamed entry workflow had no body to read.
+  Both are supported, and `publish:` is not counted as a use (an emit that is
+  only published is a bare end point). Result: 43 of 43 process-boundary
+  edges carry port, shape and the run's items, and the end points name the
+  emit actually published. `tools/test_ports.py` covers it, and the port and
+  condition scores on nf-core/rnaseq and fetchngs are unchanged.
+
+Not yet done for this style of pipeline: conditions from `params { }`
+defaults and the `output { }` block's paths, and a published model for a
+pipeline with no schema (the Analyser's proposer needs one).
+
 ## Next steps (2026-10-12)
 
 **State:** process-flow 0.1.0 is published at

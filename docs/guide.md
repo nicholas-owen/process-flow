@@ -1,12 +1,18 @@
 # Using process-flow on a Nextflow pipeline
 
+New to it? [example.md](example.md) is the start-to-finish walkthrough: set
+up, get a pipeline from GitHub, run it, read the page, share it. This guide is
+the reference behind it, and the Analyser walkthrough for pipeline authors.
+
 ## Seeing a pipeline: one command
 
 ```bash
 /path/to/process-flow/bin/process-flow run nf-core/rnaseq -r 3.27.0 -profile test,docker --outdir results
 ```
 
-Open `results/pipeline_info/channels.html`. You need Nextflow 25.04 or later
+Open `results/pipeline_info/channels.html`. Pipelines that use Nextflow's `output { }` block (strict syntax, Nextflow 25.10 and later) reject a `--outdir` they do not declare (`Parameter 'outdir' was specified ... but is not declared`); give them `-output-dir results` instead. With neither, process-flow uses the output folder Nextflow reports for the run, and keeps the DAG in `.process-flow/dag.dot` in the launch folder.
+
+You need Nextflow 25.04 or later
 (for data lineage) and Python 3; nothing else, and no change to the pipeline.
 
 What happens:

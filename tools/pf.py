@@ -46,6 +46,17 @@ def say(*a):
 
 
 # ---- a model from the run and the code ------------------------------------------------------
+def pipeline_name(meta, source):
+    """The pipeline's name: Nextflow's project name for a pulled pipeline
+    (nf-core/rnaseq); for a local script that is the script's own name
+    (main.nf), so use its folder, without the -main or -master a GitHub
+    download adds."""
+    name = meta.get("projectName") or ""
+    if not name or name.endswith(".nf"):
+        name = re.sub(r"-(main|master)$", "", os.path.basename(os.path.abspath(source)))
+    return name
+
+
 def build_model(source, dag, run_name, params, meta):
     from propose import propose
     from generate import generate
@@ -60,7 +71,7 @@ def build_model(source, dag, run_name, params, meta):
         _, dims, _, _ = propose(json.load(open(schema_path, encoding="utf-8")), source)
     settings = settings_from_params(dims, params)
     run = {"id": run_name, "args": "", "status": "ok", "settings": settings, "dag": os.path.abspath(dag)}
-    name = meta.get("projectName") or os.path.basename(source)
+    name = pipeline_name(meta, source)
     model = generate(name, dims, [run], ".", None, meta.get("revision"), meta.get("commitId"),
                      (meta.get("nextflow") or {}).get("version"), keep_unused=True, source=source)
     model.pop("_dropped", None); model.pop("_untested", None)
@@ -120,7 +131,15 @@ def explore(run_dir=".", outdir=None, source=None, model_path=None, dag=None, ou
                  "or with `lineage.enabled = true` in a config")
     tasks, wf = read_lineage(lineage)
     if not wf:
-        sys.exit(f"process-flow: {lineage} has no workflow run")
+        # a run that failed before it started leaves an empty store; say why
+        why = ""
+        log = os.path.join(run_dir, ".nextflow.log")
+        if os.path.exists(log):
+            errs = [l.strip() for l in open(log, encoding="utf-8", errors="replace") if " ERROR " in l]
+            if errs:
+                why = f"\n  the last run's error, from .nextflow.log:\n    {errs[-1][:400]}"
+        sys.exit(f"process-flow: {lineage} has no workflow run: the run most likely failed before any task "
+                 f"started, so there is nothing to explore.{why}")
     params = (wf.get("config") or {}).get("params") or {}
     meta = wf.get("metadata") or {}
     run_name = meta.get("runName") or wf.get("name") or "run"
@@ -143,11 +162,17 @@ def explore(run_dir=".", outdir=None, source=None, model_path=None, dag=None, ou
     source = source or meta.get("projectDir")
     if not source or not os.path.isdir(source):
         sys.exit(f"process-flow: the pipeline's source is not at {source!r}; give it with --source")
-    dag = dag or os.path.join(outdir, "pipeline_info", "process-flow", "dag.dot")
+    if not dag:
+        # beside the outputs, or (when `run` did not know the output folder
+        # up front) in the launch folder
+        dag = os.path.join(outdir, "pipeline_info", "process-flow", "dag.dot")
+        if not os.path.exists(dag):
+            dag = os.path.join(run_dir, ".process-flow", "dag.dot")
     if not os.path.exists(dag):
         sys.exit(f"process-flow: no DAG at {dag}; give it with --dag")
-    say(f"run {run_name}: {meta.get('projectName', '?')} {meta.get('revision', '')} "
-        f"({(meta.get('commitId') or '')[:10]}), {len(tasks)} tasks")
+    commit = (meta.get("commitId") or "")[:10]
+    label = " ".join(b for b in (pipeline_name(meta, source), meta.get("revision") or "") if b)
+    say(f"run {run_name}: {label}{f' ({commit})' if commit else ''}, {len(tasks)} tasks")
 
     published = model_path or os.path.join(source, "assets", "process-flow", "channels.json")
     if os.path.exists(published):
@@ -180,21 +205,29 @@ def explore(run_dir=".", outdir=None, source=None, model_path=None, dag=None, ou
 
 # ---- run -------------------------------------------------------------------------------------------
 def outdir_of(args):
+    """The run's output folder if the command line names it: the `--outdir`
+    param (nf-core and most pipelines), or `-output-dir` (the workflow
+    output folder of pipelines using Nextflow's `output { }` block, which
+    reject a `--outdir` param they do not declare)."""
     for i, a in enumerate(args):
-        if a in ("--outdir", "--outdir=") and i + 1 < len(args):
+        if a in ("--outdir", "-output-dir") and i + 1 < len(args):
             return args[i + 1]
-        if a.startswith("--outdir="):
-            return a.split("=", 1)[1]
+        for flag in ("--outdir=", "-output-dir="):
+            if a.startswith(flag):
+                return a.split("=", 1)[1]
     return None
 
 
 def run(args):
     outdir = outdir_of(args)
-    if not outdir:
-        sys.exit("process-flow: give --outdir, so the page has somewhere to go")
     os.makedirs(".process-flow", exist_ok=True)
     cfg = os.path.join(".process-flow", "capture.config")
-    dag = os.path.join(outdir, "pipeline_info", "process-flow", "dag.dot")
+    if outdir:
+        dag = os.path.join(outdir, "pipeline_info", "process-flow", "dag.dot")
+    else:
+        # no output folder named: Nextflow's own default applies, which the
+        # run's record gives us afterwards; the DAG waits in the launch folder
+        dag = os.path.join(".process-flow", "dag.dot")
     with open(cfg, "w", encoding="utf-8", newline="\n") as f:
         f.write(CAPTURE.format(dag=os.path.abspath(dag).replace("\\", "/")))
     cmd = ["nextflow", "run", *args, "-c", cfg]
@@ -203,7 +236,7 @@ def run(args):
     if code != 0:
         sys.exit(f"process-flow: nextflow exited with {code}; nothing to explore. "
                  "Fix the run and rerun with -resume: cached tasks still count.")
-    return explore(".", outdir)
+    return explore(".", outdir, dag=dag)
 
 
 def main():

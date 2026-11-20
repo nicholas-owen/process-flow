@@ -30,6 +30,7 @@ SECTION = re.compile(r"^\s*(input|output|when|script|shell|exec|stub|topic)\s*:\
 DECL = re.compile(r"^\s*(tuple|path|val|env|stdin|eval|each|file)\b(.*)$")
 PROCESS = re.compile(r"^\s*process\s+(\w+)\s*\{", re.M)
 WORKFLOW = re.compile(r"^\s*workflow\s+(\w+)\s*\{", re.M)
+ENTRY = re.compile(r"^\s*workflow\s*\{", re.M)          # the unnamed entry workflow
 INCLUDE = re.compile(r"include\s*\{([^}]*)\}\s*from\s*['\"]([^'\"]+)['\"]")
 
 
@@ -181,6 +182,7 @@ class Source:
         self.root = os.path.abspath(root)
         self.processes = {}      # name -> {module, inputs, outputs}
         self.workflows = {}      # name -> (file, body)
+        self.entry = None        # (file, body) of the unnamed entry workflow, if there is one
         self.includes = collections.defaultdict(dict)   # file -> {alias: (name, target file)}
         for dirpath, _, files in os.walk(self.root):
             if "/tests" in dirpath.replace("\\", "/"):
@@ -197,6 +199,9 @@ class Source:
                     self.processes.setdefault(m.group(1), p)
                 for m in WORKFLOW.finditer(text):
                     self.workflows.setdefault(m.group(1), (rel, block(text, m.end() - 1)))
+                for m in ENTRY.finditer(text):
+                    if self.entry is None:
+                        self.entry = (rel, block(text, m.end() - 1))
                 for m in INCLUDE.finditer(text):
                     target = os.path.normpath(os.path.join(os.path.dirname(rel), m.group(2))).replace("\\", "/")
                     for item in m.group(1).split(";"):
@@ -227,6 +232,8 @@ class Source:
         wf = path[-2] if len(path) > 1 else None
         bodies = [self.workflows[wf][1]] if wf in self.workflows else []
         bodies += [b for _, b in self.workflows.values()]
+        if self.entry:
+            bodies.append(self.entry[1])
         for body in bodies:
             m = re.search(rf"(?<![\w.]){alias}\s*\(", body)
             if not m:

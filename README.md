@@ -22,12 +22,20 @@ On Linux or WSL, with Nextflow 25.04 or later and Python 3:
 
 Then open `results/pipeline_info/channels.html`.
 
+Pipelines that use Nextflow's `output { }` block (strict syntax, Nextflow 25.10 and later) reject a `--outdir` they do not declare (`Parameter 'outdir' was specified ... but is not declared`); give them `-output-dir results` instead. With neither, process-flow uses the output folder Nextflow reports for the run, and keeps the DAG in `.process-flow/dag.dot` in the launch folder.
+
 That is an ordinary `nextflow run`: everything after `run` goes to Nextflow
 as it is. process-flow only adds a config that switches on Nextflow's data
 lineage and writes the run's DAG, then builds the page when the run ends. If
 the run fails, fix it and rerun with `-resume`: cached tasks still count.
 For a run already made with `lineage.enabled = true`, `process-flow explore`
 builds the page from it.
+
+**Starting from nothing?** [docs/example.md](docs/example.md) goes from an
+empty machine to a shareable page: setting up Nextflow, Docker and
+process-flow on WSL2 or Linux, three ways to get a pipeline from GitHub
+(let Nextflow download it, clone it, or download the ZIP), and two worked runs
+(nf-core/rnaseq, and a pipeline you download and run from a folder).
 
 To see what you get before running anything, open a page in
 [examples/](examples/README.md): real test runs of nf-core/rnaseq and
@@ -38,6 +46,7 @@ nf-core/sarek.
 | Document | For |
 |---|---|
 | [process-flow_User_Guide.docx](process-flow_User_Guide.docx) | The whole guide as a formatted Word document, for printing or circulating offline: installing, the one command, reading the page, where conditions come from, the Analyser, troubleshooting |
+| [docs/example.md](docs/example.md) | Start to finish on real pipelines: set up, get a pipeline from GitHub, run it, read the page, share it |
 | [docs/guide.md](docs/guide.md) | The same in long form, with the Analyser walkthrough step by step |
 | [examples/](examples/README.md) | Pages and published models to open without running anything |
 | [schema/README.md](schema/README.md) | The channel model, field by field |

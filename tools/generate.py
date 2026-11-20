@@ -239,6 +239,8 @@ def generate(name, dims, runs, base_dir, route=None, version=None, revision=None
             outs = [(key, u.nodes[key[1]]["type"], key[2], set(u.edges[key])) for key in u.edges if key[0] == uid]
             # the workflows from the one calling the process up to the top
             bodies = [(w, src.workflows[w][1]) for w in reversed(path[:-1]) if w in src.workflows]
+            if src.entry:                       # the unnamed entry workflow is the outermost caller
+                bodies.append(("<entry>", src.entry[1]))
             a_in, a_out = assign(info, ins, outs, bodies)
             for key, (i, decl, ev) in a_in.items():
                 edge_port.setdefault(key, {})["in"] = (i, decl, ev)

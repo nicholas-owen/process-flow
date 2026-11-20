@@ -25,6 +25,9 @@ Outputs (proc["outputs"]), from how the workflow body uses `ALIAS.out.EMIT`:
   3. an edge to a bare point (an output nothing reads) takes an emit the
      workflow never uses: `topic:` emits (versions) first, in order
 
+An emit is read from `ALIAS.out.EMIT`, or, in Nextflow's newer strict syntax,
+from the call's result: `def qc = RNA_QC(...)` then `qc.outfile`.
+
 in_edges / out_edges: lists of (edge key, other end's type, label, set of runs
 it was seen in), the type
 as tools/align.py writes it (a process name, `op:map`, `point`). Returns two
@@ -52,12 +55,22 @@ def _uses(body, alias):
     uses = {}
     if not body:
         return uses
+    # strict syntax: a `publish:` section only names what to publish. An emit
+    # that reaches nothing else is a channel nothing reads, the bare end point
+    # the DAG draws for it, so what follows `publish:` is not a use.
+    body = re.split(r"(?m)^\s*publish\s*:\s*$", body, maxsplit=1)[0]
     # The process itself may be held in a variable, so one of several can be
     # used alike (nf-core/rnaseq's ALIGN_STAR: `ch_star_out = STAR_ALIGN`, then
     # `ch_star_out.out.fastq`).
     holders = [alias] + re.findall(rf"(?m)^\s*(\w+)\s*=\s*{alias}\s*(?://.*)?$", body)
     who = "|".join(map(re.escape, holders))
-    for m in re.finditer(rf"(?<![\w.])(?:{who})\s*\.\s*out\s*\.\s*(\w+)", body):
+    # strict syntax: the call's result is a variable whose members are the emits
+    results = re.findall(rf"(?m)^\s*(?:def\s+)?(\w+)\s*=\s*{re.escape(alias)}\s*\(", body)
+    found = list(re.finditer(rf"(?<![\w.])(?:{who})\s*\.\s*out\s*\.\s*(\w+)", body))
+    if results:
+        rwho = "|".join(map(re.escape, results))
+        found += list(re.finditer(rf"(?<![\w.])(?:{rwho})\s*\.\s*(?!out\b)(\w+)", body))
+    for m in sorted(found, key=lambda x: x.start()):
         emit = m.group(1)
         u = uses.setdefault(emit, [])
         before = body[:m.start()]
